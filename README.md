@@ -1,56 +1,145 @@
-# Welcome to your Expo app 👋
+# Lucid
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Study clearly. Learn deeply.**
 
-## Get started
+Lucid is an offline-first student productivity app built with React Native, Expo, and TypeScript. It brings essential study tools into one place, with a focus on simplicity, privacy, and on-device AI.
 
-1. Install dependencies
+> **Development status:** Early development. Features and architecture may change as the project evolves.
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+### Study tools
+- **Flashcards** — Create and review study cards.
+- **Quizzes** — Practice with questions and review answers.
+- **Calculator** — Solve everyday mathematical problems.
+- **Periodic table** — Explore chemical elements and their properties.
 
-   ```bash
-   npx expo start
-   ```
+### On-device AI — Planned / in progress
+- Local AI chat for study assistance.
+- AI-generated summaries from study notes.
+- Automatic flashcard and quiz generation.
+- Document question answering.
+- Model selection and download management.
+- Offline inference after the selected model has been downloaded.
 
-In the output, you'll find options to open the app in a
+Lucid is intended to run supported language models directly on the device, reducing reliance on cloud inference services.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Technology Stack
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+| Technology | Purpose |
+|---|---|
+| React Native | Cross-platform mobile UI |
+| Expo | Mobile development and builds |
+| TypeScript | Type-safe application code |
+| Expo Router | File-based navigation |
+| NobodyWho | On-device language model inference |
+| GGUF models | Local language model files |
 
-## Get a fresh project
+The exact model choices, supported device requirements, and AI features will be confirmed during implementation and testing.
 
-When you're ready, run:
+## Platforms
+
+- Android
+- iOS
+
+Native AI functionality requires a compatible development or production build. Expo Go alone is not sufficient for native modules that are not included in its binary.
+
+## Getting Started
+
+### Prerequisites
+
+Install the following:
+
+- Node.js version supported by your installed Expo SDK.
+- npm.
+- Android Studio and Android SDK for local Android builds.
+- macOS with Xcode for local iOS builds, or EAS Build for cloud builds.
+
+### Installation
+
+Clone the repository:
 
 ```bash
-npm run reset-project
+git clone <YOUR_REPOSITORY_URL>
+cd lucid
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Install dependencies:
 
-### Other setup steps
+```bash
+npm install
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Start the Expo development server:
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### Native Android build
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+After configuring the Android development environment and installing compatible native dependencies:
 
-## Join the community
+```bash
+npx expo run:android
+```
 
-Join our community of developers creating universal apps.
+### iOS build
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+On macOS with Xcode:
+
+```bash
+npx expo run:ios
+```
+
+Alternatively, use Expo Application Services (EAS) for cloud builds.
+
+## Local AI
+
+Lucid uses NobodyWho as the planned on-device inference engine.
+
+The intended model management workflow is:
+
+1. Browse supported models.
+2. Select a model appropriate for the device.
+3. Download the model.
+4. Load the model through NobodyWho.
+5. Run inference locally.
+6. Reuse the cached model for subsequent offline sessions.
+
+Only models compatible with NobodyWho's runtime and the target device will be offered. Model availability, licensing, memory requirements, and download sizes must be verified before distribution.
+
+## Privacy Principles
+
+Lucid aims to prioritize local data processing and offline usability.
+
+- Run supported AI inference on-device.
+- Avoid sending study materials to a remote AI service by default.
+- Make model downloads and storage visible to users.
+- Clearly disclose any features that require network access.
+- Validate AI-generated content before saving or using it.
+
+These are project goals and should be verified against the final implementation.
+
+## Development Guidelines
+
+- Use TypeScript for application code.
+- Keep UI components separate from business logic and AI services.
+- Preserve modular feature boundaries.
+- Validate generated flashcards and quizzes before saving.
+- Handle model loading, download failures, and insufficient memory gracefully.
+- Test on physical Android and iOS devices before release.
+
+## Project Status
+
+Lucid is currently in early development.
+
+The initial focus is to establish the Expo application, integrate NobodyWho, verify native builds, and demonstrate local model inference. The model selector and remaining AI study workflows will be implemented and tested incrementally.
+
+## License
+
+No license has been selected yet. All rights reserved unless a license is added to this repository.
+
+---
+
+**Lucid — Your space to understand.**
