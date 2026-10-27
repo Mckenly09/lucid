@@ -29,3 +29,16 @@ it('only applies migrations the database has not seen', () => {
 it('creates chats keyed by uid', () => {
   expect(MIGRATIONS[0]).toMatch(/CREATE TABLE chats[\s\S]*uid TEXT NOT NULL/);
 });
+
+it('creates cards keyed by uid, after chats', () => {
+  expect(MIGRATIONS[1]).toMatch(/CREATE TABLE cards[\s\S]*uid TEXT NOT NULL/);
+});
+
+it('creates quiz results keyed by uid', () => {
+  expect(MIGRATIONS[2]).toMatch(/CREATE TABLE quiz_results[\s\S]*uid TEXT NOT NULL/);
+});
+
+it('creates student packs keyed by uid, with a search index', () => {
+  expect(MIGRATIONS[3]).toMatch(/CREATE TABLE user_packs[\s\S]*uid TEXT NOT NULL/);
+  expect(MIGRATIONS[3]).toMatch(/USING fts5/);
+});

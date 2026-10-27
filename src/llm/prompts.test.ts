@@ -59,3 +59,9 @@ describe('buildExplainPrompt', () => {
     expect(p.turns[0].content).toContain('Ipaliwanag ito sa Filipino');
   });
 });
+
+it('adds the answer-language rule only when the student picked one', () => {
+  expect(systemPrompt('math')).toBe(systemPrompt('math', 'same'));
+  expect(buildPrompt({ subjectId: 'math', question: 'x', language: 'english' }).system).toMatch(/Always answer in English/);
+  expect(estimateTokens(systemPrompt('filipino', 'filipino'))).toBeLessThan(250);
+});

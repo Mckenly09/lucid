@@ -23,6 +23,10 @@ Lucid is a React Native (Expo) app that lets students ask questions and get answ
 
 New machine or fresh project: follow `docs/setup.md` to install v1 dependencies and config files.
 
+## Knowledge packs and eval data
+
+Lesson content and test questions come from open-licensed sources, built by scripts in `tools/packs/` — see `docs/packs.md`. Never add content without a license entry; SciQ and GSM8K are eval-only and never shipped.
+
 ## UI
 
 Screen designs live in `docs/lucid-design/design/screens/` (visual reference only). To build or change screens, follow `docs/ui.md`; translate design values to tokens with its table.

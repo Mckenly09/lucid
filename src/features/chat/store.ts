@@ -1,15 +1,18 @@
 import { create } from 'zustand';
 
 import { getChat, saveMessage } from '@/db/chats';
+import { findReferenceNotes } from '@/features/knowledge/retrieve';
 import { modelFile, toPath } from '@/features/models/services/files';
 import { useModels } from '@/features/models/store';
+import { useSettings } from '@/features/settings/store';
 import * as engine from '@/llm/engine';
 import { modelById } from '@/llm/models';
 import { buildExplainPrompt, buildPrompt, EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
 import { checkArithmetic } from '@/llm/subjects/calculator';
 import { subject, type SubjectId } from '@/llm/subjects/config';
 
-export type Message = engine.Turn;
+/** `sources`: the packs an answer's reference notes came from (source chips). */
+export type Message = engine.Turn & { sources?: string[] };
 export type Chat = { id: string; uid: string; subject: SubjectId; messages: Message[] };
 export type ChatStatus = 'idle' | 'loading' | 'generating';
 export type ChatError = 'no-model' | 'load' | 'generate';
@@ -32,7 +35,17 @@ type State = {
   stop: () => void;
 };
 
-type Prompt = ReturnType<typeof buildPrompt>;
+type Prompt = ReturnType<typeof buildPrompt> & { sources?: string[] };
+
+// The model only gets role and content; source labels are for the screen.
+const turn = ({ role, content }: Message) => ({ role, content }) as engine.Turn;
+
+/** A question's prompt, with reference notes from the student's packs when any match. */
+function askPrompt(chat: Chat, question: string, history: Message[]): Prompt {
+  const { notes, sources } = findReferenceNotes(chat.uid, chat.subject, question);
+  const language = useSettings.getState().answerLanguage;
+  return { ...buildPrompt({ subjectId: chat.subject, question, history: history.map(turn), notes, language }), sources };
+}
 
 let generation: engine.Generation | null = null;
 /** The prompt of the latest answer, so Retry re-sends exactly that (an explain prompt isn't its chip label). */
@@ -45,13 +58,13 @@ export const useChat = create<State>()((set, get) => {
       return chat ? { chats: { ...s.chats, [chatId]: { ...chat, messages: fn(chat.messages) } } } : {};
     });
   const appendToAnswer = (chatId: string, token: string) =>
-    edit(chatId, (m) => [...m.slice(0, -1), { role: 'assistant', content: m[m.length - 1].content + token }]);
+    edit(chatId, (m) => [...m.slice(0, -1), { ...m[m.length - 1], content: m[m.length - 1].content + token }]);
   // An answer stopped or failed before its first word leaves nothing worth showing.
   const dropEmptyAnswer = (chatId: string) =>
     edit(chatId, (m) => (m[m.length - 1]?.role === 'assistant' && !m[m.length - 1].content ? m.slice(0, -1) : m));
-  const save = (chat: Chat, role: Message['role'], content: string) => {
+  const save = (chat: Chat, role: Message['role'], content: string, sources?: string[]) => {
     try {
-      saveMessage(chat.uid, chat, role, content);
+      saveMessage(chat.uid, chat, role, content, sources);
     } catch (e) {
       // A failed write keeps the answer on screen; it only misses History. Never log the content itself.
       console.warn('Could not save message', e instanceof Error ? e.message : e);
@@ -77,7 +90,7 @@ export const useChat = create<State>()((set, get) => {
       if (get().activeId !== chatId) return;
     }
 
-    edit(chatId, (m) => [...m, { role: 'assistant', content: '' }]);
+    edit(chatId, (m) => [...m, { role: 'assistant', content: '', sources: prompt.sources?.length ? prompt.sources : undefined }]);
     set({ status: 'generating' });
     try {
       generation = engine.generate({
@@ -90,11 +103,11 @@ export const useChat = create<State>()((set, get) => {
         const checked = checkArithmetic(text);
         if (checked.wrong) {
           text = checked.text;
-          edit(chatId, (m) => [...m.slice(0, -1), { role: 'assistant', content: text }]);
+          edit(chatId, (m) => [...m.slice(0, -1), { ...m[m.length - 1], content: text }]);
         }
       }
       // Stopped answers are saved too, with what was written so far.
-      if (text.trim()) save(chat, 'assistant', text);
+      if (text.trim()) save(chat, 'assistant', text, prompt.sources);
       set({ status: 'idle', activeId: null });
     } catch {
       fail(chatId, 'generate');
@@ -135,8 +148,7 @@ export const useChat = create<State>()((set, get) => {
     ask: async (chatId, question) => {
       const chat = get().chats[chatId];
       if (!chat || get().status !== 'idle' || !question.trim()) return;
-      const prompt = buildPrompt({ subjectId: chat.subject, question, history: chat.messages });
-      await send(chat, question.trim(), prompt);
+      await send(chat, question.trim(), askPrompt(chat, question, chat.messages));
     },
 
     explain: async (chatId, kind) => {
@@ -153,10 +165,7 @@ export const useChat = create<State>()((set, get) => {
       const chat = get().chats[chatId];
       if (!chat || get().status !== 'idle') return;
       set({ error: null, activeId: chatId });
-      const prompt =
-        lastPrompt?.chatId === chatId
-          ? lastPrompt.prompt
-          : buildPrompt({ subjectId: chat.subject, question: last.content, history: messages.slice(0, -1) });
+      const prompt = lastPrompt?.chatId === chatId ? lastPrompt.prompt : askPrompt(chat, last.content, messages.slice(0, -1));
       void answer(chat, prompt);
     },
 
