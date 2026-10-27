@@ -4,12 +4,18 @@ import { getDb } from './client';
 
 export type Role = 'user' | 'assistant';
 export type ChatSummary = { id: string; subject: SubjectId; title: string; preview: string; updatedAt: number };
-export type StoredChat = { id: string; subject: SubjectId; messages: { role: Role; content: string }[] };
+export type StoredChat = { id: string; subject: SubjectId; messages: { role: Role; content: string; sources?: string[] }[] };
 
 const PREVIEW_CHARS = 120;
 
 /** Saves one message; the chat row is created by its first message, so empty chats are never stored. */
-export function saveMessage(uid: string, chat: { id: string; subject: SubjectId }, role: Role, content: string) {
+export function saveMessage(
+  uid: string,
+  chat: { id: string; subject: SubjectId },
+  role: Role,
+  content: string,
+  sources?: string[],
+) {
   const db = getDb();
   const now = Date.now();
   db.withTransactionSync(() => {
@@ -22,7 +28,14 @@ export function saveMessage(uid: string, chat: { id: string; subject: SubjectId 
       now,
       now,
     );
-    db.runSync('INSERT INTO messages (chat_id, role, content, created_at) VALUES (?, ?, ?, ?)', chat.id, role, content, now);
+    db.runSync(
+      'INSERT INTO messages (chat_id, role, content, created_at, sources) VALUES (?, ?, ?, ?, ?)',
+      chat.id,
+      role,
+      content,
+      now,
+      sources?.length ? JSON.stringify(sources) : null,
+    );
     // The preview is the first answer, like the History design.
     db.runSync(
       `UPDATE chats SET updated_at = ?, preview = CASE WHEN ? = 'assistant' AND preview = '' THEN ? ELSE preview END
@@ -59,9 +72,15 @@ export function getChat(uid: string, id: string): StoredChat | null {
     uid,
   );
   if (!chat) return null;
-  const messages = db.getAllSync<{ role: Role; content: string }>(
-    'SELECT role, content FROM messages WHERE chat_id = ? ORDER BY id',
+  const rows = db.getAllSync<{ role: Role; content: string; sources: string | null }>(
+    'SELECT role, content, sources FROM messages WHERE chat_id = ? ORDER BY id',
     id,
   );
+  const messages = rows.map(({ sources, ...m }) => (sources ? { ...m, sources: JSON.parse(sources) as string[] } : m));
   return { ...chat, messages };
+}
+
+/** Messages go with it (ON DELETE CASCADE); its cards stay, unlinked (002-cards). */
+export function deleteChat(uid: string, id: string) {
+  getDb().runSync('DELETE FROM chats WHERE id = ? AND uid = ?', id, uid);
 }

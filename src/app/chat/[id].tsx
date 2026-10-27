@@ -1,6 +1,8 @@
+import * as Clipboard from 'expo-clipboard';
+import { Paths } from 'expo-file-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { AccessibilityInfo, FlatList, View } from 'react-native';
 
 import { Badge } from '@/components/badge';
 import { Banner } from '@/components/banner';
@@ -13,21 +15,31 @@ import { EmptyState } from '@/components/empty-state';
 import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
 import { IconButton } from '@/components/icon-button';
+import { formatSize } from '@/components/model-card';
 import { Screen } from '@/components/screen';
+import { SourceChips } from '@/components/source-chip';
 import { Text } from '@/components/text';
+import { TypingDots } from '@/components/typing-dots';
 import { useAuth } from '@/features/auth/useAuth';
 import { type ChatError, useChat } from '@/features/chat/store';
+import { type CardDraft, SaveCardSheet } from '@/features/flashcards/components/SaveCardSheet';
+import { shortenAnswer } from '@/features/flashcards/services/shorten';
+import { useModels } from '@/features/models/store';
 import { EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
 import { subject } from '@/llm/subjects/config';
 import { isFilipino } from '@/llm/subjects/detect';
 
-// shortcut: copy and save-as-card are no-ops until those v1 features are built.
-const noop = () => {};
+const MB = 1024 ** 2;
+const LOW_STORAGE_BYTES = 500 * MB;
+const EXPLAIN_LABELS = new Set(Object.values(EXPLAIN_LABEL));
 
-const ERRORS: Record<ChatError, string> = {
-  'no-model': "Lucid's brain isn't downloaded on this phone yet.",
-  load: "Lucid couldn't start. Close other apps to free memory, then try again.",
-  generate: 'Something went wrong while answering. Please try again.',
+const ERRORS: Record<ChatError, { title?: string; message: string }> = {
+  'no-model': { message: "Lucid's brain isn't downloaded on this phone yet." },
+  load: {
+    title: "Lucid couldn't start the AI",
+    message: 'Your phone may be low on memory. Close other apps, then try again. Your question is saved.',
+  },
+  generate: { message: 'Something went wrong while answering. Please try again.' },
 };
 
 export default function Chat() {
@@ -39,6 +51,14 @@ export default function Chat() {
   const error = useChat((s) => (s.error?.chatId === id ? s.error.kind : null));
   const { ask, explain, retry, stop } = useChat.getState();
   const list = useRef<FlatList>(null);
+  const installedId = useModels((s) => s.installedId);
+  // Read once per screen: the model needs free space to run well, and a full phone slows everything down.
+  const [freeBytes] = useState(() => Paths.availableDiskSpace);
+  const lowStorage = freeBytes < LOW_STORAGE_BYTES;
+  const [draft, setDraft] = useState<CardDraft | null>(null);
+  // The answer (by message count) saved as a card, so the bookmark shows it.
+  const [savedAt, setSavedAt] = useState(-1);
+  const [copiedAt, setCopiedAt] = useState(-1);
 
   // Chats from History or Home load from SQLite (a quick sync read, once per screen); a new one is already in memory.
   const [found] = useState(() => !!user && useChat.getState().open(user.uid, id));
@@ -69,6 +89,22 @@ export default function Chat() {
   const answered = !busy && last?.role === 'assistant';
   // The language chip offers the other language (docs/ui.md ExplainChips).
   const chips: ExplainKind[] = ['simpler', 'example', answered && isFilipino(last.content) ? 'english' : 'filipino'];
+  const saved = savedAt === chat.messages.length;
+  const copied = copiedAt === chat.messages.length;
+
+  const copy = async () => {
+    await Clipboard.setStringAsync(last.content);
+    setCopiedAt(chat.messages.length);
+    AccessibilityInfo.announceForAccessibility('Answer copied');
+  };
+
+  const openSaveCard = () => {
+    // The front is the student's own question, not an "Explain simpler" follow-up.
+    const question =
+      [...chat.messages].reverse().find((m) => m.role === 'user' && !EXPLAIN_LABELS.has(m.content))?.content ?? first;
+    const { text, shortened } = shortenAnswer(last.content);
+    setDraft({ subject: chat.subject, front: question, back: text, chatId: id, shortened });
+  };
 
   return (
     <Screen
@@ -87,7 +123,13 @@ export default function Chat() {
         ref={list}
         data={chat.messages}
         keyExtractor={(_, i) => String(i)}
-        renderItem={({ item }) => <ChatBubble role={item.role} content={item.content} />}
+        renderItem={({ item }) => (
+          <ChatBubble
+            role={item.role}
+            content={item.content}
+            footer={item.sources?.length ? <SourceChips sources={item.sources} /> : undefined}
+          />
+        )}
         contentContainerClassName="gap-4 p-4"
         keyboardShouldPersistTaps="handled"
         // Follow the answer as it streams in.
@@ -95,19 +137,35 @@ export default function Chat() {
         ListFooterComponent={
           <View className="gap-4">
             {busy && status === 'loading' && (
-              <View className="self-start rounded-lg rounded-bl-sm bg-ink/5 p-4" accessibilityLiveRegion="polite">
+              <View className="self-start gap-2 rounded-lg rounded-bl-sm bg-ink/5 p-4" accessibilityLiveRegion="polite">
+                <TypingDots />
                 <Text tone="muted">Starting Lucid… this takes a few seconds the first time.</Text>
               </View>
             )}
             {error && (
               <Banner
                 status="danger"
-                message={ERRORS[error]}
-                icon={<Icon name="TriangleAlert" size={22} tone="danger" />}
+                title={ERRORS[error].title}
+                message={ERRORS[error].message}
+                icon={<Icon name="CircleAlert" size={22} tone="danger" />}
               />
             )}
             {error && error !== 'no-model' && (
-              <Button label="Try again" variant="secondary" onPress={() => retry(id)} className="self-start" />
+              <View className="flex-row gap-2">
+                <Button label="Try again" variant="secondary" onPress={() => retry(id)} />
+                {/* The bigger model failing to load on this phone: offer the smaller one (AGENTS.md LLM rule 5). */}
+                {error === 'load' && installedId === 'plus' && (
+                  <Button label="Use Lucid Lite" variant="ghost" onPress={() => router.push('/settings/model')} />
+                )}
+              </View>
+            )}
+            {lowStorage && (
+              <Banner
+                status="warning"
+                title="Low storage"
+                message={`Only ${formatSize(freeBytes / MB)} left. Lucid may run slowly.`}
+                icon={<Icon name="TriangleAlert" size={22} tone="warning" />}
+              />
             )}
             {answered && (
               <>
@@ -120,17 +178,18 @@ export default function Chat() {
                   <Button
                     label="Quiz me"
                     icon={<Icon name="CircleHelp" size={20} tone="paper" />}
-                    onPress={() => router.push({ pathname: '/quiz/[id]', params: { id: 'demo' } })}
+                    onPress={() => router.push({ pathname: '/quiz/[id]', params: { id } })}
                   />
                   <IconButton
-                    accessibilityLabel="Copy answer"
-                    onPress={noop}
-                    icon={<Icon name="Copy" size={20} tone="muted" />}
+                    accessibilityLabel={copied ? 'Answer copied' : 'Copy answer'}
+                    onPress={() => void copy()}
+                    icon={<Icon name={copied ? 'Check' : 'Copy'} size={20} tone={copied ? 'success' : 'muted'} />}
                   />
                   <IconButton
-                    accessibilityLabel="Save as card"
-                    onPress={noop}
-                    icon={<Icon name="Bookmark" size={20} tone="muted" />}
+                    accessibilityLabel={saved ? 'Saved as card' : 'Save as card'}
+                    onPress={openSaveCard}
+                    disabled={saved}
+                    icon={<Icon name={saved ? 'BookmarkCheck' : 'Bookmark'} size={20} tone={saved ? 'success' : 'muted'} />}
                   />
                 </View>
               </>
@@ -138,6 +197,14 @@ export default function Chat() {
             <Disclaimer />
           </View>
         }
+      />
+      <SaveCardSheet
+        draft={draft}
+        onClose={() => setDraft(null)}
+        onSaved={() => {
+          setDraft(null);
+          setSavedAt(chat.messages.length);
+        }}
       />
     </Screen>
   );

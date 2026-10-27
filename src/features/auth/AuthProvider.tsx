@@ -1,6 +1,8 @@
 import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
 import { createContext, type ReactNode, useEffect, useMemo, useState } from 'react';
 
+import { moveUserData } from '@/db/user-data';
+
 import { configureGoogle } from './google';
 import { useLocalProfile } from './local-profile';
 import type { AuthStatus, AuthUser } from './types';
@@ -26,10 +28,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  // Signing in with Google replaces the offline profile.
-  // shortcut: nothing is stored per uid yet; move the local uid's chats and cards to the Google uid once storage lands.
+  // Signing in with Google replaces the offline profile, keeping its chats, cards and scores (auth.md §5).
   useEffect(() => {
-    if (google.user && local) clearLocal();
+    if (!google.user || !local) return;
+    try {
+      moveUserData(local.uid, google.user.uid);
+    } catch (e) {
+      // Keep the profile so its data isn't stranded; the Google user still wins, and the next app start retries.
+      console.warn('Could not move offline data', e instanceof Error ? e.message : e);
+      return;
+    }
+    clearLocal();
   }, [google.user, local, clearLocal]);
 
   const state = useMemo(() => {

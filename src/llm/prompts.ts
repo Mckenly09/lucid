@@ -18,7 +18,16 @@ export const NOTES_MAX_CHARS = 1600;
 /** Rough count for budgets only; the real tokenizer lives in the runtime. */
 export const estimateTokens = (text: string) => Math.ceil(text.length / 4);
 
-export const systemPrompt = (id: SubjectId) => `${SHARED_RULES}\n\n${subject(id).systemPrompt}`;
+/** Settings → Answer language; "same" keeps the shared rule (answer in the student's language). */
+export type AnswerLanguage = 'same' | 'english' | 'filipino';
+const LANGUAGE_RULE: Record<AnswerLanguage, string> = {
+  same: '',
+  english: '\n\nAlways answer in English, even if the question is in Filipino.',
+  filipino: '\n\nLaging sumagot sa Filipino, kahit nasa English ang tanong.',
+};
+
+export const systemPrompt = (id: SubjectId, language: AnswerLanguage = 'same') =>
+  `${SHARED_RULES}\n\n${subject(id).systemPrompt}${LANGUAGE_RULE[language]}`;
 
 export type ExplainKind = 'simpler' | 'example' | 'filipino' | 'english';
 
@@ -52,14 +61,57 @@ export function buildPrompt(opts: {
   history?: Turn[];
   /** Knowledge-pack passages, best match first. */
   notes?: string[];
+  language?: AnswerLanguage;
 }) {
   const s = subject(opts.subjectId);
   const notes = (opts.notes ?? []).join('\n\n').slice(0, NOTES_MAX_CHARS).trim();
   const question = opts.question.trim();
   const content = notes ? `Reference notes:\n${notes}\n\nQuestion: ${question}` : question;
   return {
-    system: systemPrompt(s.id),
+    system: systemPrompt(s.id, opts.language),
     turns: [...(opts.history ?? []).slice(-HISTORY_TURNS), { role: 'user', content } satisfies Turn],
     temperature: s.temperature,
   };
+}
+
+// Copied from docs/subjects.md "Quiz me"; edit it there first. Kept short: it replaces the subject prompt.
+const QUIZ_RULES = `You write multiple-choice quiz questions for a high school student.
+- Use only facts from the explanation you are given. Do not add new facts.
+- Write in the same language as the explanation.
+- Each question has one correct answer and three wrong answers that are clearly wrong but believable.
+- "why" is one short sentence explaining the correct answer.
+- Reply with JSON only.`;
+
+/** Answers longer than this are cut so the prompt fits the 2048-token context with room for the quiz. */
+export const QUIZ_ANSWER_MAX_CHARS = 2400;
+
+/** The model returns the right answer and the wrong ones apart; code shuffles them, so "exactly one correct" holds by shape. */
+export const QUIZ_SCHEMA = {
+  type: 'object',
+  properties: {
+    questions: {
+      type: 'array',
+      minItems: 3,
+      maxItems: 5,
+      items: {
+        type: 'object',
+        properties: {
+          question: { type: 'string' },
+          answer: { type: 'string' },
+          wrong: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 3 },
+          why: { type: 'string' },
+        },
+        required: ['question', 'answer', 'wrong', 'why'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['questions'],
+  additionalProperties: false,
+} as const;
+
+/** Quiz me: 3 questions (the schema allows up to 5) to stay near the ~10 s target. Built from the answer text only, so questions stay on what the student just learned (roadmap v1). */
+export function buildQuizPrompt(answer: string) {
+  const content = `Explanation:\n${answer.trim().slice(0, QUIZ_ANSWER_MAX_CHARS)}\n\nWrite 3 short questions about this explanation.`;
+  return { system: QUIZ_RULES, turns: [{ role: 'user', content } satisfies Turn], jsonSchema: QUIZ_SCHEMA, maxTokens: 600 };
 }

@@ -57,6 +57,8 @@ export function generate(opts: {
   maxTokens?: number;
   /** Per subject (subjects.md): math low, languages a bit higher. */
   temperature?: number;
+  /** Forces the output to match this JSON schema (Quiz me); `temperature` is then ignored. */
+  jsonSchema?: object;
 }): Generation {
   if (!loaded) throw new Error('No model loaded');
   current?.stop();
@@ -73,7 +75,9 @@ export function generate(opts: {
   const done = (async () => {
     // complete() replaces the chat's history, so every call stands alone.
     const stream = chat.complete([{ role: 'system', content: opts.system }, ...opts.turns], {
-      sampler: SamplerPresets.temperature(opts.temperature ?? TEMPERATURE),
+      sampler: opts.jsonSchema
+        ? SamplerPresets.constrainWithJsonSchema(opts.jsonSchema)
+        : SamplerPresets.temperature(opts.temperature ?? TEMPERATURE),
     });
     let text = '';
     let count = 0;

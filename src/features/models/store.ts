@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { ModelStatus } from '@/components/model-card';
+import * as engine from '@/llm/engine';
 import { storage } from '@/utils/kv-storage';
 import { type Model, type ModelId, modelById } from '@/llm/models';
 
@@ -54,6 +55,13 @@ export const useModels = create<Models>()(
           const final = modelFile(model);
           if (final.exists) final.delete();
           part.move(final);
+          // Switching in Settings: the new model replaces the old one, so a small phone never holds two.
+          const prev = get().installedId;
+          if (prev && prev !== model.id) {
+            engine.unload();
+            const old = modelFile(modelById(prev));
+            if (old.exists) old.delete();
+          }
           set({ status: 'ready', installedId: model.id, progress: 1 });
         } catch {
           // shortcut: a dropped connection (or the app being killed mid-download) leaves no resume data, so Retry

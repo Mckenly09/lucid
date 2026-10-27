@@ -1,0 +1,60 @@
+{
+  "_note": "Topic names from the DepEd K-12 Science curriculum guide (topic names only, no module text). Proposed by the agent; the developer reviews them (docs/packs.md).",
+  "science": {
+    "7": [
+      { "code": "sci7-substances-mixtures", "name": "Substances and mixtures" },
+      { "code": "sci7-solutions", "name": "Solutions and concentration" },
+      { "code": "sci7-acids-bases", "name": "Acids and bases" },
+      { "code": "sci7-metals-nonmetals", "name": "Metals and nonmetals" },
+      { "code": "sci7-cells", "name": "Cells and microscopy" },
+      { "code": "sci7-organization", "name": "Levels of organization" },
+      { "code": "sci7-ecosystems", "name": "Ecosystems" },
+      { "code": "sci7-motion", "name": "Motion" },
+      { "code": "sci7-waves", "name": "Waves, sound, light and heat" },
+      { "code": "sci7-electricity", "name": "Electricity basics" },
+      { "code": "sci7-atmosphere", "name": "Earth's atmosphere and seasons" }
+    ],
+    "8": [
+      { "code": "sci8-particle-nature", "name": "Particle nature of matter" },
+      { "code": "sci8-atomic-structure", "name": "Atomic structure" },
+      { "code": "sci8-periodic-table", "name": "The periodic table" },
+      { "code": "sci8-newtons-laws", "name": "Newton's laws of motion" },
+      { "code": "sci8-work-energy", "name": "Work, power and energy" },
+      { "code": "sci8-heat", "name": "Heat and temperature" },
+      { "code": "sci8-earthquakes", "name": "Earthquakes and faults" },
+      { "code": "sci8-typhoons", "name": "Typhoons" },
+      { "code": "sci8-digestion", "name": "Digestive system" },
+      { "code": "sci8-cell-division", "name": "Mitosis and meiosis" },
+      { "code": "sci8-genetics", "name": "Mendelian genetics" },
+      { "code": "sci8-biodiversity", "name": "Biodiversity" }
+    ],
+    "9": [
+      { "code": "sci9-electron-config", "name": "Electron configuration" },
+      { "code": "sci9-bonding", "name": "Chemical bonding" },
+      { "code": "sci9-carbon-compounds", "name": "Carbon compounds" },
+      { "code": "sci9-mole", "name": "The mole concept" },
+      { "code": "sci9-respiration-circulation", "name": "Respiratory and circulatory systems" },
+      { "code": "sci9-inheritance", "name": "Non-Mendelian inheritance" },
+      { "code": "sci9-photosynthesis", "name": "Photosynthesis and cellular respiration" },
+      { "code": "sci9-volcanoes", "name": "Volcanoes" },
+      { "code": "sci9-climate", "name": "Climate" },
+      { "code": "sci9-projectile", "name": "Projectile motion" },
+      { "code": "sci9-momentum", "name": "Impulse and momentum" },
+      { "code": "sci9-energy-conservation", "name": "Conservation of energy" }
+    ],
+    "10": [
+      { "code": "sci10-gas-laws", "name": "Gas laws" },
+      { "code": "sci10-biomolecules", "name": "Biomolecules" },
+      { "code": "sci10-reactions", "name": "Chemical reactions and balancing" },
+      { "code": "sci10-reaction-rates", "name": "Reaction rates" },
+      { "code": "sci10-plate-tectonics", "name": "Plate tectonics" },
+      { "code": "sci10-em-spectrum", "name": "Electromagnetic spectrum" },
+      { "code": "sci10-optics", "name": "Mirrors and lenses" },
+      { "code": "sci10-electromagnetism", "name": "Electromagnetism" },
+      { "code": "sci10-nervous-endocrine", "name": "Nervous and endocrine systems" },
+      { "code": "sci10-homeostasis", "name": "Reproduction and homeostasis" },
+      { "code": "sci10-dna-protein", "name": "DNA, RNA and protein synthesis" },
+      { "code": "sci10-evolution", "name": "Evolution" }
+    ]
+  }
+}

@@ -48,3 +48,6 @@ docs
 .gitignore
 google-services.json
 GoogleService-Info.plist
+# pack builder (docs/packs.md): cloned sources and built packs; packs ship via GitHub Releases
+tools/packs/.cache/
+tools/packs/dist/

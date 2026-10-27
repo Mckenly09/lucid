@@ -1,0 +1,49 @@
+{
+  "sources": [
+    {
+      "id": "openstax-chemistry-2e",
+      "title": "Chemistry 2e",
+      "authors": "Paul Flowers, Klaus Theopold, Richard Langley, William R. Robinson",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-chemistry-bundle.git",
+      "commit": "db0a8e6027100ce082e67fc8879faab86f9a58a7",
+      "collection": "collections/chemistry-2e.collection.xml",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "bookUrl": "https://openstax.org/details/books/chemistry-2e",
+      "pagesUrl": "https://openstax.org/books/chemistry-2e/pages/",
+      "evalOnly": false
+    },
+    {
+      "id": "openstax-physics",
+      "title": "Physics",
+      "authors": "Paul Peter Urone, Roger Hinrichs",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-physics.git",
+      "commit": "56e71824e73e371c0d20eb68a77611aa438b5f89",
+      "collection": "collections/physics.collection.xml",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "bookUrl": "https://openstax.org/details/books/physics",
+      "pagesUrl": "https://openstax.org/books/physics/pages/",
+      "evalOnly": false
+    },
+    {
+      "id": "openstax-concepts-biology",
+      "title": "Concepts of Biology",
+      "authors": "Samantha Fowler, Rebecca Roush, James Wise",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-biology-bundle.git",
+      "commit": "89c14e6d065606fdbe1e696ce2e8d9612a080147",
+      "collection": "collections/concepts-biology.collection.xml",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "bookUrl": "https://openstax.org/details/books/concepts-biology",
+      "pagesUrl": "https://openstax.org/books/concepts-biology/pages/",
+      "evalOnly": false
+    }
+  ]
+}

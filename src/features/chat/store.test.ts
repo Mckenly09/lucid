@@ -1,4 +1,5 @@
 import { getChat, saveMessage } from '@/db/chats';
+import { findReferenceNotes } from '@/features/knowledge/retrieve';
 import { useModels } from '@/features/models/store';
 import * as engine from '@/llm/engine';
 
@@ -11,7 +12,9 @@ jest.mock('@/features/models/services/files', () => ({
   toPath: (uri: string) => uri.replace('file://', ''),
 }));
 jest.mock('@/features/models/store', () => ({ useModels: { getState: jest.fn() } }));
+jest.mock('@/features/settings/store', () => ({ useSettings: { getState: () => ({ answerLanguage: 'same' }) } }));
 jest.mock('@/db/chats', () => ({ saveMessage: jest.fn(), getChat: jest.fn() }));
+jest.mock('@/features/knowledge/retrieve', () => ({ findReferenceNotes: jest.fn() }));
 
 const mocked = jest.mocked(engine);
 
@@ -42,6 +45,24 @@ beforeEach(() => {
   jest.mocked(useModels.getState).mockReturnValue({ installedId: 'lite' } as ReturnType<typeof useModels.getState>);
   mocked.isLoaded.mockReturnValue(false);
   mocked.load.mockResolvedValue();
+  jest.mocked(findReferenceNotes).mockReturnValue({ notes: [], sources: [] });
+});
+
+it('adds matching notes to the prompt and keeps their sources on the answer', async () => {
+  jest.mocked(findReferenceNotes).mockReturnValue({ notes: ['Chlorophyll absorbs light.'], sources: ['Your notes · Bio'] });
+  fakeAnswer(['Plants use light.']);
+  const id = useChat.getState().newChat('u1', 'science');
+  await useChat.getState().ask(id, 'Why do plants need sunlight?');
+
+  expect(findReferenceNotes).toHaveBeenCalledWith('u1', 'science', 'Why do plants need sunlight?');
+  const turns = mocked.generate.mock.calls[0][0].turns;
+  const asked = turns[turns.length - 1].content;
+  expect(asked.startsWith('Reference notes:')).toBe(true);
+  expect(asked).toContain('Chlorophyll absorbs light.');
+  expect(asked.endsWith('Question: Why do plants need sunlight?')).toBe(true);
+  expect(turns.every((t) => Object.keys(t).sort().join() === 'content,role')).toBe(true);
+  expect(messages(id)[1]).toEqual({ role: 'assistant', content: 'Plants use light.', sources: ['Your notes · Bio'] });
+  expect(jest.mocked(saveMessage).mock.calls[1][4]).toEqual(['Your notes · Bio']);
 });
 
 it('loads the model, then streams the answer into the chat', async () => {

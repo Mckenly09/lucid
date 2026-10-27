@@ -1,0 +1,35 @@
+# The four checks AGENTS.md requires before a task is done. No native build here: that's EAS (see eas.json).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # postinstall runs patch-package (the react-native-css color-mix fix).
+      - run: npm ci
+
+      # Gitignored and normally written by `expo start`; tsc needs it for `import '@/global.css'`.
+      # Typed routes (.expo/types) aren't generated in CI, so hrefs are checked as plain strings here.
+      - run: echo '/// <reference types="expo/types" />' > expo-env.d.ts
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -- --ci
+      - run: npm run check:tokens

@@ -13,6 +13,7 @@ import { Text } from '@/components/text';
 import { AccountButton } from '@/features/auth/components/AccountButton';
 import { useAuth } from '@/features/auth/useAuth';
 import { useChat } from '@/features/chat/store';
+import { useSettings } from '@/features/settings/store';
 import { SUGGESTIONS } from '@/features/demo-data';
 import { subject, SUBJECTS, type SubjectId } from '@/llm/subjects/config';
 import { detectSubject } from '@/llm/subjects/detect';
@@ -29,7 +30,10 @@ export default function Ask() {
   // From Home: `subject` preselects a chip, `focus` opens the keyboard. Each comes with a fresh value per tap
   // (`at` / `focus`), because this tab stays mounted and the same subject twice wouldn't change the params.
   const params = useLocalSearchParams<{ subject?: SubjectId; at?: string; focus?: string }>();
-  const [picked, setPicked] = useState<SubjectId | 'auto'>('auto');
+  // Follows Settings → Default subject until the student taps a chip.
+  const defaultSubject = useSettings((s) => s.defaultSubject);
+  const [chosen, setChosen] = useState<SubjectId | 'auto' | null>(null);
+  const picked = chosen ?? defaultSubject;
   const [lastAt, setLastAt] = useState<string>();
   const { user } = useAuth();
   const input = useRef<ComponentRef<typeof TextInput>>(null);
@@ -37,7 +41,7 @@ export default function Ask() {
   if (params.at !== lastAt) {
     setLastAt(params.at);
     // General has no chip; it means "let Lucid pick".
-    if (params.subject) setPicked(params.subject === 'general' ? 'auto' : params.subject);
+    if (params.subject) setChosen(params.subject === 'general' ? 'auto' : params.subject);
   }
 
   useEffect(() => {
@@ -70,7 +74,7 @@ export default function Ask() {
       </View>
 
       <View className="mt-6">
-        <SubjectPicker value={picked} onChange={setPicked} options={OPTIONS} />
+        <SubjectPicker value={picked} onChange={setChosen} options={OPTIONS} />
       </View>
 
       <Text variant="label" className="mb-2 mt-6">
