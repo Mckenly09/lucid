@@ -14,7 +14,8 @@
         "monochromeImage": "./assets/images/monochrome-icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.mckenly.lucid"
+      "package": "com.mckenly.lucid",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "server",
@@ -35,11 +36,24 @@
         "expo-build-properties",
         {
           "android": {
-            "buildArchs": ["arm64-v8a"],
-            "useLegacyPackaging": true
+            "buildArchs": [
+              "arm64-v8a"
+            ],
+            "useLegacyPackaging": true,
+            "kotlinVersion": "2.4.0"
+          },
+          "ios": {
+            "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-font",
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-google-signin/google-signin",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -55,6 +69,10 @@
         "projectId": "8155d6db-3ea2-494d-ad42-1a3a3280e9b9"
       }
     },
-    "owner": "mckenly"
+    "owner": "mckenly",
+    "ios": {
+      "bundleIdentifier": "com.mckenly.lucid",
+      "googleServicesFile": "./GoogleService-Info.plist"
+    }
   }
 }

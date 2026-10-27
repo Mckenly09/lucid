@@ -4,12 +4,66 @@
 
 @import "nativewind/theme";
 
+/* Lucid tokens — see docs/system-design.md. NativeWind v5 / Tailwind v4 form of the
+   spec's tailwind.config.js (v4 has no config file; tokens live in @theme). */
+@theme {
+  /* Replace (not extend) the palette so default Tailwind colors can't be used */
+  --color-*: initial;
+  --color-primary: rgb(58 58 58); /* #3A3A3A */
+  --color-ink: rgb(10 10 10); /* #0A0A0A */
+  --color-paper: rgb(255 255 255); /* #FFFFFF */
+  --color-default: rgb(138 138 138); /* #8A8A8A */
+  --color-success: rgb(22 163 74); /* #16A34A */
+  --color-warning: rgb(217 119 6); /* #D97706 */
+  --color-danger: rgb(220 38 38); /* #DC2626 */
+
+  --text-*: initial;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-small: 14px;
+  --text-small--line-height: 20px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-h3: 17px;
+  --text-h3--line-height: 24px;
+  --text-h2: 20px;
+  --text-h2--line-height: 28px;
+  --text-h1: 24px;
+  --text-h1--line-height: 32px;
+  --text-display: 32px;
+  --text-display--line-height: 40px;
+
+  --radius-*: initial;
+  --radius-none: 0;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Family names match what the root layout loads with useFonts */
+  --font-sans: Inter;
+  --font-medium: Inter-Medium;
+  --font-semibold: Inter-SemiBold;
+  --font-bold: Inter-Bold;
+  --font-mono: JetBrainsMono;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: rgb(200 200 200); /* #C8C8C8 */
+    --color-ink: rgb(245 245 245); /* #F5F5F5 */
+    --color-paper: rgb(0 0 0); /* #000000 */
+    --color-default: rgb(138 138 138); /* #8A8A8A */
+    --color-success: rgb(74 222 128); /* #4ADE80 */
+    --color-warning: rgb(251 191 36); /* #FBBF24 */
+    --color-danger: rgb(248 113 113); /* #F87171 */
+  }
+}
+
 :root {
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
     Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
 }

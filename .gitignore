@@ -1,5 +1,5 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
+.env
 # dependencies
 node_modules/
 
@@ -46,3 +46,5 @@ example
 docs
 .claude
 .gitignore
+google-services.json
+GoogleService-Info.plist

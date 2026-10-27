@@ -10,15 +10,20 @@ Lucid is a React Native (Expo) app that lets students ask questions and get answ
 
 ## Tech stack
 
-- Expo (SDK: `<fill in>`), TypeScript (strict), Expo Router (file-based routing)
+- Expo (SDK: 58), TypeScript (strict), Expo Router (file-based routing)
 - **Development build required** — Expo Go cannot load the native LLM module. Run with `npx expo run:android` / `npx expo run:ios`.
 - New Architecture enabled (required by on-device LLM libraries)
-- LLM runtime: `<fill in: llama.rn | react-native-executorch>`
+- LLM runtime: react-native-nobodywho (GGUF, llama.cpp)
   - llama.rn → GGUF models (Qwen, Gemma, Llama 3.2, SmolLM2, etc.), quantized Q4_K_M by default
   - react-native-executorch → `.pte` models via `useLLM`
 - Local storage: `expo-sqlite` (chats, messages, knowledge packs with FTS5), `expo-file-system` (model files)
-- State: `<fill in: Zustand | Jotai | React Context>`
+- State: Zustand
 - Styling: NativeWind (`className`) with tokens from `tailwind.config.js` + `global.css` only — see `systemdesign.md`
+- Auth: Firebase Authentication (React Native Firebase, modular API) + Google Sign-In. The Firebase ID token is the JWT — see `auth.md`
+
+## Setup
+
+New machine or fresh project: follow `setup.md` to install v1 dependencies and config files.
 
 ## Commands
 
@@ -38,11 +43,12 @@ Run `lint`, `typecheck`, and `test` before saying a task is done.
 
 ```
 app/                    # Expo Router screens only (thin: layout + wiring)
+  (auth)/               # sign-in
   (tabs)/               # Ask, History, Library, Settings
   onboarding/           # first run, model download
 src/
   components/           # reusable UI (see systemdesign.md) — no business logic
-  features/             # feature modules: chat/, models/, knowledge/, history/
+  features/             # feature modules: auth/, chat/, models/, knowledge/, history/
     <feature>/
       components/       # feature-specific UI
       hooks/
@@ -57,6 +63,22 @@ src/
 global.css              # color tokens as CSS variables (light + dark)
 tailwind.config.js      # maps tokens to NativeWind classes
 ```
+
+## Setup
+
+use setup.md in docs/setup.md
+
+## System Design
+
+use system-design.md
+
+## UI Design
+
+use Lucid App screens.pdf in docs
+
+## Roadmap
+
+Features ship in versions — see `roadmap.md`. Only build features in the **current version** (`<fill in: v1>`). If a task needs a feature from a later version, stop and ask.
 
 ## Rules for the LLM layer
 
@@ -78,9 +100,19 @@ Lucid specializes in the major high school subjects (Math, Science, English, Fil
 - Math and science arithmetic is verified with an offline calculator (`mathjs`). Never trust the model's arithmetic.
 - After changing a prompt, model, or retrieval setting, run the subject eval set and report the pass rate per subject.
 
+## Authentication
+
+Full spec in `auth.md`. The essentials:
+
+- Only `src/features/auth/` imports `@react-native-firebase/auth` or the Google Sign-In library. Everything else uses `useAuth()`.
+- Signed-in state comes from the persisted Firebase user, which is available offline. An expired ID token while offline must **never** sign the student out or block the Ask screen.
+- Never create or sign JWTs in the app. Use `getIdToken()` right before a request to our own backend; the backend verifies it with the Firebase Admin SDK.
+- Never log tokens or store the Firebase ID token yourself. A backend-issued token, if any, goes in `expo-secure-store` only.
+- Collect only uid, name, email and photo. Key local data by `uid`.
+
 ## Offline rules
 
-- No network calls at runtime except: model download, knowledge-pack download, and (opt-in) update checks.
+- No network calls at runtime except: Google sign-in and token refresh, model download, knowledge-pack download, and (opt-in) update checks.
 - No analytics, crash reporting, or telemetry that sends user questions anywhere. Student questions never leave the device.
 - Every screen must render and work in airplane mode. Test it.
 
@@ -107,11 +139,13 @@ Lucid specializes in the major high school subjects (Math, Science, English, Fil
 
 - Unit-test `services/`, `db/`, and prompt building (pure functions).
 - Mock `src/llm/engine.ts` in component tests — never load a real model in tests.
+- Mock `src/features/auth/service.ts` in component tests — never call Firebase in tests.
 - Manual check before merging LLM changes: airplane mode, low-storage device, stop mid-answer, background/foreground during generation.
 
 ## Don't
 
-- Don't add a backend, login, or cloud sync unless explicitly asked.
+- Don't add a backend or cloud sync unless explicitly asked. Login is Firebase + Google only — don't add other providers without asking.
+- Don't send student questions or answers to Firebase or any server.
 - Don't import the LLM runtime outside `src/llm/`.
 - Don't bundle model files in the app binary.
 - Don't add a dependency that requires network at runtime.
