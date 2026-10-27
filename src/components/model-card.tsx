@@ -30,7 +30,7 @@ export function ModelCard(p: Props) {
   ) : p.status === 'ready' ? (
     <Badge label="Ready" status="success" />
   ) : p.recommended ? (
-    <Badge label="Recommended" />
+    <Badge label="Recommended" status="primary" />
   ) : null;
 
   const showProgress = p.status === 'downloading' || p.status === 'paused';
@@ -44,27 +44,33 @@ export function ModelCard(p: Props) {
       className="gap-3">
       <View className="flex-row items-start gap-3">
         <View className="flex-1">
-          <Text variant="h2" className="font-semibold">{p.name}</Text>
-          <Text tone="muted">
+          <Text variant="h3">{p.name}</Text>
+          <Text variant="small" tone="muted">
             {p.description} · {formatSize(p.sizeMB)}
           </Text>
         </View>
         {badge}
       </View>
       {showProgress && (
-        <View className="gap-2">
+        <View className="gap-1">
           <ProgressBar value={p.progress ?? 0} label={`${p.name} download`} />
           <View className="flex-row justify-between">
-            <Text variant="small" tone="muted">
+            <Text variant="caption" tone="muted" className="font-sans">
               {p.status === 'paused' ? 'Paused' : 'Downloading'} · {pct}%
             </Text>
             {p.minutesLeft != null && p.status === 'downloading' && (
-              <Text variant="small" tone="muted">About {p.minutesLeft} min left</Text>
+              <Text variant="caption" tone="muted" className="font-sans">
+                About {p.minutesLeft} min left
+              </Text>
             )}
           </View>
         </View>
       )}
-      {p.status === 'failed' && <Text variant="small" tone="danger">Download stopped. Tap to retry.</Text>}
+      {p.status === 'failed' && (
+        <Text variant="small" tone="danger">
+          Download stopped. Tap to retry.
+        </Text>
+      )}
     </Card>
   );
 }

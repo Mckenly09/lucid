@@ -17,21 +17,24 @@
   --color-warning: rgb(217 119 6); /* #D97706 */
   --color-danger: rgb(220 38 38); /* #DC2626 */
 
+  /* Line heights are unitless ratios (px ÷ font size), like Tailwind's own defaults.
+     react-native-css 3.1 multiplies any line-height read through var() by the font size,
+     so '20px' rendered as 280dp on Android. Ratio × size gives the px noted on each line. */
   --text-*: initial;
   --text-caption: 12px;
-  --text-caption--line-height: 16px;
+  --text-caption--line-height: 1.3333; /* 16px */
   --text-small: 14px;
-  --text-small--line-height: 20px;
+  --text-small--line-height: 1.4286; /* 20px */
   --text-body: 16px;
-  --text-body--line-height: 24px;
+  --text-body--line-height: 1.5; /* 24px */
   --text-h3: 17px;
-  --text-h3--line-height: 24px;
+  --text-h3--line-height: 1.4118; /* 24px */
   --text-h2: 20px;
-  --text-h2--line-height: 28px;
+  --text-h2--line-height: 1.4; /* 28px */
   --text-h1: 24px;
-  --text-h1--line-height: 32px;
+  --text-h1--line-height: 1.3333; /* 32px */
   --text-display: 32px;
-  --text-display--line-height: 40px;
+  --text-display--line-height: 1.25; /* 40px */
 
   --radius-*: initial;
   --radius-none: 0;

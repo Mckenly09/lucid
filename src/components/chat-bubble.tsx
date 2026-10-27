@@ -14,13 +14,13 @@ type Props = {
 export function ChatBubble({ role, content, footer }: Props) {
   if (role === 'user') {
     return (
-      <View className="max-w-[85%] self-end rounded-lg bg-primary px-4 py-3">
-        <Text tone="paper" className="text-h3">{content}</Text>
+      <View className="max-w-[85%] self-end rounded-lg rounded-br-sm bg-primary px-4 py-3">
+        <Text tone="paper">{content}</Text>
       </View>
     );
   }
   return (
-    <View className="w-full gap-3 self-start rounded-lg bg-ink/5 px-4 py-4">
+    <View className="w-full gap-3 self-start rounded-lg rounded-bl-sm bg-ink/5 p-4">
       <MarkdownAnswer content={content} />
       {footer}
     </View>

@@ -1,100 +1,140 @@
 import * as Device from 'expo-device';
 import { Paths } from 'expo-file-system';
 import { NetworkStateType, useNetworkState } from 'expo-network';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { Banner } from '@/components/banner';
 import { Button } from '@/components/button';
 import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
-import { formatSize, ModelCard, type ModelStatus } from '@/components/model-card';
+import { formatSize, ModelCard } from '@/components/model-card';
+import { RiseIn, STAGGER } from '@/components/rise-in';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
-import { DEMO_MODELS } from '@/features/demo-data';
+import { hasRoom } from '@/features/models/services/files';
+import { useModels } from '@/features/models/store';
 import { useOnboarding } from '@/features/onboarding/store';
+import { type Model, MODELS, modelById, recommendedModel } from '@/llm/models';
 
 const GB = 1024 ** 3;
+const MB = 1024 ** 2;
 
 export default function Download() {
   const finish = useOnboarding((s) => s.finish);
+  const { activeId, status, progress, start, pause, resume } = useModels();
   const network = useNetworkState();
   const ramGB = (Device.totalMemory ?? 0) / GB;
-  const freeMB = Paths.availableDiskSpace / 1024 ** 2;
-  const fits = (m: (typeof DEMO_MODELS)[number]) => ramGB === 0 || ramGB >= m.minRamGB;
+  const freeBytes = Paths.availableDiskSpace;
+  const fits = (m: Model) => ramGB === 0 || ramGB >= m.minRamGB;
+  const recommended = recommendedModel(ramGB);
 
-  const [selected, setSelected] = useState(DEMO_MODELS[0].id);
-  // shortcut: fake progress so the layout can be reviewed; replace with the resumable download in features/models.
-  const [status, setStatus] = useState<ModelStatus>('downloading');
-  const progress = 0.62;
-  const model = DEMO_MODELS.find((m) => m.id === selected) ?? DEMO_MODELS[0];
-  const canRun = fits(model) && freeMB > model.sizeMB;
+  const [picked, setPicked] = useState(activeId ?? recommended.id);
+  const model = modelById(picked);
+  // The store's status belongs to the active model; another picked model hasn't started yet.
+  const current = picked === activeId ? status : 'available';
+  // Cards lock while a download runs or is done; Pause unlocks them to switch models.
+  const busy = status === 'downloading' || status === 'ready';
+  const room = hasRoom(model, freeBytes);
+  const canRun = fits(model) && room;
+  const offline = network.isInternetReachable === false;
+  const onWifi = network.type === NetworkStateType.WIFI && !offline;
+
+  // The model is the one thing Lucid needs, so start it as soon as setup opens, but only on Wi-Fi:
+  // on mobile data the student taps Download after seeing the size (AGENTS.md LLM rule 6). Once per visit,
+  // so a Pause isn't undone.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoStarted.current || !onWifi || !canRun) return;
+    if (current === 'available') start(model);
+    else if (current === 'paused') resume();
+    else return;
+    autoStarted.current = true;
+  }, [onWifi, canRun, current, model, start, resume]);
+
+  const action =
+    current === 'ready' ? (
+      <Button label="Continue" size="lg" className="flex-1" onPress={finish} />
+    ) : current === 'downloading' ? (
+      <Button label="Pause" variant="secondary" size="lg" className="flex-1" onPress={pause} />
+    ) : current === 'paused' ? (
+      <Button label="Resume" size="lg" className="flex-1" disabled={offline} onPress={resume} />
+    ) : (
+      <Button
+        label={`${current === 'failed' ? 'Try again' : 'Download'} · ${formatSize(model.sizeBytes / MB)}`}
+        size="lg"
+        className="flex-1"
+        disabled={!room || offline}
+        onPress={() => start(model)}
+      />
+    );
 
   return (
-    <Screen
-      scroll
-      padded={false}
-      footer={
-        <View className="flex-row gap-3 px-4 pb-2 pt-3">
-          <Button
-            label={status === 'paused' ? 'Resume' : 'Pause'}
-            variant="secondary"
-            size="lg"
-            className="flex-1"
-            onPress={() => setStatus(status === 'paused' ? 'downloading' : 'paused')}
-          />
-          <Button label="Continue" size="lg" className="flex-1" onPress={finish} />
-        </View>
-      }>
+    <Screen scroll padded={false} footer={<View className="flex-row gap-3 px-4 pb-8 pt-3">{action}</View>}>
       <Header title="Step 2 of 2" subtle />
-      <View className="flex-1 gap-6 px-4 pt-4">
-        <View className="gap-2">
-          <Text variant="display" accessibilityRole="header">
+      <View className="flex-1 gap-6 px-4 pt-2">
+        <RiseIn className="gap-2">
+          <Text variant="h1" accessibilityRole="header">
             Download Lucid&apos;s brain
           </Text>
-          <Text variant="h3" tone="muted" className="font-sans">
-            One download, then Lucid works without internet.
-          </Text>
-        </View>
+          <Text tone="muted">One download, then Lucid works without internet.</Text>
+        </RiseIn>
 
-        <Banner
-          status={canRun ? 'success' : 'warning'}
-          title={canRun ? 'Your phone can run Lucid' : 'Your phone may be too small for Lucid'}
-          message={`${ramGB ? `${ramGB.toFixed(0)} GB` : 'Unknown'} memory · ${formatSize(freeMB)} storage free`}
-          icon={
-            <Icon
-              ios={canRun ? 'checkmark.circle' : 'exclamationmark.triangle'}
-              android={canRun ? 'check_circle' : 'warning'}
-              size={28}
-              className={canRun ? 'text-success' : 'text-warning'}
-            />
-          }
-        />
+        <RiseIn delay={STAGGER}>
+          <Banner
+            status={canRun ? 'success' : 'warning'}
+            title={
+              canRun
+                ? 'Your phone can run Lucid'
+                : room
+                  ? 'Your phone may be too small for this model'
+                  : 'Not enough storage'
+            }
+            message={`${ramGB ? `${ramGB.toFixed(0)} GB` : 'Unknown'} memory · ${formatSize(freeBytes / MB)} storage free`}
+            icon={
+              <Icon name={canRun ? 'CircleCheck' : 'TriangleAlert'} size={22} tone={canRun ? 'success' : 'warning'} />
+            }
+          />
+        </RiseIn>
 
         <View className="gap-3">
-          {DEMO_MODELS.map((m, i) => (
-            <ModelCard
-              key={m.id}
-              name={m.name}
-              description={m.description}
-              sizeMB={m.sizeMB}
-              recommended={i === 0}
-              tooBig={!fits(m)}
-              selected={selected === m.id}
-              onPress={() => setSelected(m.id)}
-              status={selected === m.id ? status : 'available'}
-              progress={progress}
-              minutesLeft={2}
-            />
+          {MODELS.map((m, i) => (
+            <RiseIn key={m.id} delay={STAGGER * (2 + i)}>
+              <ModelCard
+                name={m.name}
+                description={m.description}
+                sizeMB={m.sizeBytes / MB}
+                recommended={m.id === recommended.id}
+                tooBig={!fits(m)}
+                selected={picked === m.id}
+                // Locked while a download is running or done; a failed card retries on tap.
+                onPress={busy ? undefined : () => (current === 'failed' && picked === m.id ? start(m) : setPicked(m.id))}
+                status={picked === m.id ? current : 'available'}
+                progress={progress}
+              />
+            </RiseIn>
           ))}
         </View>
 
-        {network.type === NetworkStateType.CELLULAR && (
-          <Banner
-            status="warning"
-            message="You're on mobile data. This may use your load — Wi-Fi is better."
-            icon={<Icon ios="exclamationmark.triangle" android="warning" size={28} className="text-warning" />}
-          />
+        {offline && status !== 'ready' ? (
+          <RiseIn fade>
+            <Banner
+              status="warning"
+              message="Connect to the internet to download. You only need it once."
+              icon={<Icon name="WifiOff" size={22} tone="warning" />}
+            />
+          </RiseIn>
+        ) : (
+          network.type === NetworkStateType.CELLULAR &&
+          status !== 'ready' && (
+            <RiseIn fade>
+              <Banner
+                status="warning"
+                message="You're on mobile data. This may use your load — Wi-Fi is better."
+                icon={<Icon name="TriangleAlert" size={22} tone="warning" />}
+              />
+            </RiseIn>
+          )
         )}
       </View>
     </Screen>

@@ -50,13 +50,20 @@ export default function Quiz() {
     <Screen
       padded={false}
       footer={
-        <View className="flex-row gap-3 px-4 pb-2 pt-3">
+        <View className="flex-row gap-3 px-4 pb-8 pt-3">
           {done ? (
             <Button label="Done" size="lg" className="flex-1" onPress={() => router.back()} />
           ) : (
             <>
               {/* shortcut: save-as-card is a no-op until flashcards are stored */}
-              <Button label="Save as card" variant="secondary" size="lg" className="flex-1" disabled={picked == null} onPress={() => {}} />
+              <Button
+                label="Save as card"
+                variant="secondary"
+                size="lg"
+                className="flex-1"
+                disabled={picked == null}
+                onPress={() => {}}
+              />
               <Button
                 label={index === questions.length - 1 ? 'See score' : 'Next question'}
                 size="lg"
@@ -71,13 +78,21 @@ export default function Quiz() {
       <Header
         back="close"
         title={`Quiz · ${topic}`}
-        right={!done && <Text tone="muted">{index + 1}/{questions.length}</Text>}
+        right={
+          !done && (
+            <Text variant="small" tone="muted">
+              {index + 1}/{questions.length}
+            </Text>
+          )
+        }
       />
-      <View className="flex-row gap-2 px-4 py-2" accessibilityLabel={`Question ${Math.min(index + 1, questions.length)} of ${questions.length}`}>
+      <View
+        className="flex-row gap-1 px-4 py-2"
+        accessibilityLabel={`Question ${Math.min(index + 1, questions.length)} of ${questions.length}`}>
         {questions.map((_, i) => (
           <View
             key={i}
-            className={`h-2 flex-1 rounded-full ${i < index ? 'bg-success' : i === index ? 'bg-primary' : 'bg-ink/10'}`}
+            className={`h-1.5 flex-1 rounded-full ${i < index ? 'bg-success' : i === index ? 'bg-primary' : 'bg-ink/10'}`}
           />
         ))}
       </View>
@@ -85,17 +100,21 @@ export default function Quiz() {
       {done ? (
         <View className="flex-1 items-center justify-center gap-2 px-4">
           <Text variant="label">Your score</Text>
-          <Text variant="display" className="text-center">{score} of {questions.length}</Text>
+          <Text variant="display" className="text-center">
+            {score} of {questions.length}
+          </Text>
           <Text tone="muted" className="text-center">
             {score === questions.length ? 'Perfect! You got them all.' : 'Nice work. Review the ones you missed.'}
           </Text>
         </View>
       ) : (
         <Screen scroll edges={[]}>
-          <View className="gap-3 pt-4">
+          <View className="gap-1.5 pt-4">
             <Text variant="label">Question {index + 1}</Text>
-            <Text variant="h1" accessibilityRole="header">{q.question}</Text>
-            <View className="mt-3 gap-3">
+            <Text variant="h2" accessibilityRole="header">
+              {q.question}
+            </Text>
+            <View className="mt-4 gap-2.5">
               {q.choices.map((c, i) => {
                 const s = stateOf(i);
                 return (
@@ -103,21 +122,36 @@ export default function Quiz() {
                     key={c}
                     onPress={() => pick(i)}
                     disabled={picked != null}
-                    accessibilityRole="button"
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: picked === i }}
                     accessibilityLabel={`${LETTERS[i]}: ${c}${s === 'correct' ? ', correct' : s === 'wrong' ? ', your answer, wrong' : ''}`}
-                    className={`min-h-14 flex-row items-center gap-4 rounded-lg border px-4 py-3 ${choiceStyle[s]}`}>
+                    className={`min-h-14 flex-row items-center gap-3 rounded-md border px-4 py-3 ${choiceStyle[s]}`}>
                     <Marker letter={LETTERS[i]} state={s} />
-                    <Text tone={s === 'dim' ? 'muted' : 'ink'} className="flex-1 text-h3">{c}</Text>
-                    {s === 'wrong' && <Text tone="danger" className="font-medium">Your answer</Text>}
-                    {s === 'correct' && <Text tone="success" className="font-medium">Correct</Text>}
+                    <Text tone={s === 'dim' ? 'muted' : 'ink'} className="flex-1">
+                      {c}
+                    </Text>
+                    {s === 'wrong' && (
+                      <Text variant="caption" tone="danger" className="font-semibold">
+                        Your answer
+                      </Text>
+                    )}
+                    {s === 'correct' && (
+                      <Text variant="caption" tone="success" className="font-semibold">
+                        Correct
+                      </Text>
+                    )}
                   </Pressable>
                 );
               })}
             </View>
             {picked != null && (
-              <Card className="mt-3 gap-1">
-                <Text variant="h3">Why?</Text>
-                <Text tone="muted">{q.why}</Text>
+              <Card className="mt-4 gap-1 p-3">
+                <Text variant="small" className="font-semibold">
+                  Why?
+                </Text>
+                <Text variant="small" tone="muted">
+                  {q.why}
+                </Text>
               </Card>
             )}
           </View>
@@ -130,19 +164,17 @@ export default function Quiz() {
 function Marker({ letter, state }: { letter: string; state: ChoiceState }) {
   if (state === 'correct' || state === 'wrong') {
     return (
-      <View className={`h-8 w-8 items-center justify-center rounded-full ${state === 'correct' ? 'bg-success' : 'bg-danger'}`}>
-        <Icon
-          ios={state === 'correct' ? 'checkmark' : 'xmark'}
-          android={state === 'correct' ? 'check' : 'close'}
-          size={16}
-          className="text-paper"
-        />
+      <View
+        className={`h-7 w-7 items-center justify-center rounded-full ${state === 'correct' ? 'bg-success' : 'bg-danger'}`}>
+        <Icon name={state === 'correct' ? 'Check' : 'X'} size={16} tone="paper" />
       </View>
     );
   }
   return (
-    <View className="h-8 w-8 items-center justify-center rounded-full border border-ink/20">
-      <Text variant="caption" tone="muted">{letter}</Text>
+    <View className="h-7 w-7 items-center justify-center rounded-full border border-ink/20">
+      <Text variant="caption" tone="muted" className="font-semibold">
+        {letter}
+      </Text>
     </View>
   );
 }

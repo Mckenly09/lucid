@@ -16,7 +16,7 @@ type Props = {
 };
 
 export function Card({ children, variant = 'filled', onPress, accessibilityLabel, className = '' }: Props) {
-  const base = `rounded-lg p-4 ${variants[variant]} ${className}`;
+  const base = `rounded-md p-4 ${variants[variant]} ${className}`;
   if (!onPress) return <View className={base}>{children}</View>;
   return (
     <Pressable

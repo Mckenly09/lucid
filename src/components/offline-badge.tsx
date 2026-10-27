@@ -1,12 +1,17 @@
 import { View } from 'react-native';
 
+import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
 
 export function OfflineBadge() {
   return (
-    <View className="flex-row items-center gap-2 rounded-full bg-ink/5 px-3 py-2" accessibilityLabel="Offline, AI runs on this device">
-      <View className="h-2 w-2 rounded-full border border-ink/60" />
-      <Text variant="small" tone="muted">Offline · on-device</Text>
+    <View
+      className="flex-row items-center gap-1 rounded-full bg-default/10 px-2 py-1"
+      accessibilityLabel="Offline, AI runs on this device">
+      <Icon name="Circle" size={8} tone="default" />
+      <Text variant="caption" tone="default">
+        Offline · on-device
+      </Text>
     </View>
   );
 }

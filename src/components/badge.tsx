@@ -4,7 +4,8 @@ import { Pressable, Text, View } from 'react-native';
 export type Status = 'default' | 'success' | 'warning' | 'danger';
 
 const styles = {
-  default: { bg: 'bg-ink/10', text: 'text-ink/80' },
+  primary: { bg: 'bg-primary/10', text: 'text-primary' },
+  default: { bg: 'bg-default/10', text: 'text-default' },
   success: { bg: 'bg-success/10', text: 'text-success' },
   warning: { bg: 'bg-warning/10', text: 'text-warning' },
   danger: { bg: 'bg-danger/10', text: 'text-danger' },
@@ -12,7 +13,7 @@ const styles = {
 
 type Props = {
   label: string;
-  status?: Status;
+  status?: Status | 'primary';
   icon?: ReactNode;
   /** Makes the badge a small action (Update, Retry). */
   onPress?: () => void;
@@ -24,10 +25,10 @@ export function Badge({ label, status = 'default', icon, onPress, className = ''
   const content = (
     <>
       {icon}
-      <Text className={`font-medium text-small ${s.text}`}>{label}</Text>
+      <Text className={`font-medium text-caption ${s.text}`}>{label}</Text>
     </>
   );
-  const base = `flex-row items-center gap-1 rounded-full px-3 ${s.bg} ${className}`;
+  const base = `flex-row items-center gap-1 rounded-full px-2 ${s.bg} ${className}`;
   if (!onPress) return <View className={`${base} py-1`}>{content}</View>;
   return (
     <Pressable

@@ -1,12 +1,17 @@
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
+import { styled } from 'nativewind';
 
-const sizes = { sm: 'h-8 w-7', md: 'h-28 w-24', lg: 'h-36 w-32' } as const;
+// expo-image, not RN Image: react-native-web's Image sets the file's 1024px size inline, overriding className.
+const StyledImage = styled(Image, { className: 'style' });
+
+// The app icon tile, as in every design file (corner radius rounded to the nearest token).
+const sizes = { sm: 'h-7 w-7 rounded-sm', md: 'h-24 w-24 rounded-lg', lg: 'h-30 w-30 rounded-lg' } as const;
 
 export function Logo({ size = 'md' }: { size?: keyof typeof sizes }) {
   return (
-    <Image
-      source={require('@/assets/images/logo-transparent.png')}
-      resizeMode="contain"
+    <StyledImage
+      source={require('@/assets/images/icon.png')}
+      contentFit="cover"
       className={sizes[size]}
       accessibilityLabel="Lucid logo"
     />

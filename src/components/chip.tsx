@@ -13,13 +13,14 @@ export function Chip({ label, selected, onPress, icon, className = '' }: Props) 
   return (
     <Pressable
       onPress={onPress}
+      hitSlop={4} // 36px chip, 44px touch target
       disabled={!onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected }}
-      className={`min-h-11 flex-row items-center gap-2 rounded-full border px-4 ${selected ? 'border-primary bg-primary/10' : 'border-transparent bg-ink/5 active:bg-ink/10'} ${className}`}>
+      className={`min-h-9 flex-row items-center gap-2 rounded-full border px-3 ${selected ? 'border-primary bg-primary/10' : 'border-transparent bg-ink/5 active:bg-ink/10'} ${className}`}>
       {icon}
-      <Text className="font-medium text-body text-ink">{label}</Text>
+      <Text className={`text-small ${selected ? 'font-semibold text-primary' : 'font-medium text-ink'}`}>{label}</Text>
     </Pressable>
   );
 }

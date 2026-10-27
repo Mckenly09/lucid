@@ -13,17 +13,19 @@ Lucid is a React Native (Expo) app that lets students ask questions and get answ
 - Expo (SDK: 58), TypeScript (strict), Expo Router (file-based routing)
 - **Development build required** — Expo Go cannot load the native LLM module. Run with `npx expo run:android` / `npx expo run:ios`.
 - New Architecture enabled (required by on-device LLM libraries)
-- LLM runtime: react-native-nobodywho (GGUF, llama.cpp)
-  - llama.rn → GGUF models (Qwen, Gemma, Llama 3.2, SmolLM2, etc.), quantized Q4_K_M by default
-  - react-native-executorch → `.pte` models via `useLLM`
+- LLM runtime: `react-native-nobodywho` (GGUF models via llama.cpp: Qwen, Gemma, Llama 3.2, SmolLM2, etc.), quantized Q4_K_M by default
 - Local storage: `expo-sqlite` (chats, messages, knowledge packs with FTS5), `expo-file-system` (model files)
 - State: Zustand
-- Styling: NativeWind (`className`) with tokens from `tailwind.config.js` + `global.css` only — see `systemdesign.md`
-- Auth: Firebase Authentication (React Native Firebase, modular API) + Google Sign-In. The Firebase ID token is the JWT — see `auth.md`
+- Styling: NativeWind (`className`) with tokens from the `@theme` block in `src/global.css` only (Tailwind v4: no `tailwind.config.js`) — see `docs/system-design.md`
+- Auth: Firebase Authentication (React Native Firebase, modular API) + Google Sign-In. The Firebase ID token is the JWT — see `docs/auth.md`
 
 ## Setup
 
-New machine or fresh project: follow `setup.md` to install v1 dependencies and config files.
+New machine or fresh project: follow `docs/setup.md` to install v1 dependencies and config files.
+
+## UI
+
+Screen designs live in `docs/lucid-design/design/screens/` (visual reference only). To build or change screens, follow `docs/ui.md`; translate design values to tokens with its table.
 
 ## Commands
 
@@ -35,19 +37,20 @@ npx expo run:ios           # dev build on iOS
 npm run lint
 npm run typecheck          # tsc --noEmit
 npm test
+npm run check:tokens      # no hex, rgb() or arbitrary values in app code
 ```
 
-Run `lint`, `typecheck`, and `test` before saying a task is done.
+Run `lint`, `typecheck`, `test` and `check:tokens` before saying a task is done.
 
 ## Project structure
 
 ```
-app/                    # Expo Router screens only (thin: layout + wiring)
-  (auth)/               # sign-in
-  (tabs)/               # Ask, History, Library, Settings
-  onboarding/           # first run, model download
 src/
-  components/           # reusable UI (see systemdesign.md) — no business logic
+  app/                  # Expo Router screens only (thin: layout + wiring)
+    (auth)/             # sign-in
+    (tabs)/             # Home, Ask, Cards, History, Library (Settings opens from the avatar)
+    onboarding/         # first run, model download
+  components/           # reusable UI (see docs/system-design.md) — no business logic
   features/             # feature modules: auth/, chat/, models/, knowledge/, history/
     <feature>/
       components/       # feature-specific UI
@@ -60,29 +63,16 @@ src/
     models.ts           # model catalog (id, url, size, sha256, minRamGB)
   db/                   # SQLite schema, migrations, queries
   utils/
-global.css              # color tokens as CSS variables (light + dark)
-tailwind.config.js      # maps tokens to NativeWind classes
+  global.css            # color tokens (@theme, light + dark); no tailwind.config.js in Tailwind v4
 ```
-
-## Setup
-
-use setup.md in docs/setup.md
-
-## System Design
-
-use system-design.md
-
-## UI Design
-
-use Lucid App screens.pdf in docs
 
 ## Roadmap
 
-Features ship in versions — see `roadmap.md`. Only build features in the **current version** (`<fill in: v1>`). If a task needs a feature from a later version, stop and ask.
+Features ship in versions — see `docs/roadmap.md`. Only build features in the **current version** (v1). If a task needs a feature from a later version, stop and ask.
 
 ## Rules for the LLM layer
 
-1. **Isolate the runtime.** Only `src/llm/` imports `llama.rn` / `react-native-executorch`. Everything else talks to `engine.ts`. This keeps the runtime swappable.
+1. **Isolate the runtime.** Only `src/llm/` imports `react-native-nobodywho`. Everything else talks to `engine.ts`. This keeps the runtime swappable.
 2. **One model loaded at a time.** Release the context before loading another. Release on app background if memory is tight.
 3. **Always stream** tokens to the UI, and always support **Stop**. Interrupt generation before a screen unmounts.
 4. **Never block the JS thread** with long work; show progress for model load (it can take several seconds).
@@ -93,7 +83,7 @@ Features ship in versions — see `roadmap.md`. Only build features in the **cur
 
 ## Subject specialization
 
-Lucid specializes in the major high school subjects (Math, Science, English, Filipino, Araling Panlipunan/Social Studies, plus General). The full spec is in `subjects.md`.
+Lucid specializes in the major high school subjects (Math, Science, English, Filipino, Araling Panlipunan/Social Studies, plus General). The full spec is in `docs/subjects.md`.
 
 - Subject config, prompts, auto-detect, and the eval set live in `src/llm/subjects/`. Don't hard-code subject prompts anywhere else.
 - Every prompt = shared rules + subject prompt + (optional) reference notes + question. Keep the system prompt under ~250 tokens.
@@ -102,7 +92,7 @@ Lucid specializes in the major high school subjects (Math, Science, English, Fil
 
 ## Authentication
 
-Full spec in `auth.md`. The essentials:
+Full spec in `docs/auth.md`. The essentials:
 
 - Only `src/features/auth/` imports `@react-native-firebase/auth` or the Google Sign-In library. Everything else uses `useAuth()`.
 - Signed-in state comes from the persisted Firebase user, which is available offline. An expired ID token while offline must **never** sign the student out or block the Ask screen.
@@ -120,8 +110,8 @@ Full spec in `auth.md`. The essentials:
 
 - TypeScript strict; no `any` without a comment explaining why.
 - Functional components + hooks. Screens in `app/` stay thin.
-- Styling: NativeWind `className` only. Colors are limited to `primary`, `ink`, `paper` plus status `default`, `success`, `warning`, `danger` (shades via opacity, e.g. `text-ink/60`). **No hex values, no inline `style` for colors/fonts/spacing, no arbitrary values** like `p-[13px]` or `bg-[#123]`. If a token is missing, add it to `systemdesign.md` and `tailwind.config.js` first.
-- Use components from `src/components/` before creating new ones. If you add one, document it in `systemdesign.md`.
+- Styling: NativeWind `className` only. Colors are limited to `primary`, `ink`, `paper` plus status `default`, `success`, `warning`, `danger` (shades via opacity, e.g. `text-ink/60`). **No hex values, no inline `style` for colors/fonts/spacing, no arbitrary values** like `p-[13px]` or `bg-[#123]`. If a token is missing, add it to `docs/system-design.md` and `src/global.css` first.
+- Use components from `src/components/` before creating new ones. If you add one, document it in `docs/system-design.md`.
 - Every interactive element: `accessibilityLabel`, `accessibilityRole`, min touch target 44×44.
 - Support light and dark mode and dynamic font scaling.
 - Lists use `FlatList`/`FlashList`, never `.map()` inside a `ScrollView` for long data.
@@ -144,7 +134,7 @@ Full spec in `auth.md`. The essentials:
 
 ## Don't
 
-- Don't add a backend or cloud sync unless explicitly asked. Login is Firebase + Google only — don't add other providers without asking.
+- Don't add a backend or cloud sync unless explicitly asked. Login is Firebase + Google, plus the offline profile (`docs/auth.md` §5) — don't add other providers without asking.
 - Don't send student questions or answers to Firebase or any server.
 - Don't import the LLM runtime outside `src/llm/`.
 - Don't bundle model files in the app binary.

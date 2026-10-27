@@ -3,6 +3,8 @@ export type AuthUser = {
   name: string | null;
   email: string | null;
   photoUrl: string | null;
+  /** Offline profile with no Google account (local-profile.ts). */
+  isLocal?: boolean;
 };
 
 export type AuthStatus = 'loading' | 'signedIn' | 'signedOut';

@@ -21,11 +21,11 @@ export function ListItem({ title, subtitle, left, right, onPress }: Props) {
       className="min-h-11 flex-row items-center gap-3 border-b border-ink/10 py-3 active:bg-ink/5">
       {left}
       <View className="flex-1">
-        <Text variant="body" className="text-h3" numberOfLines={1}>
+        <Text variant="body" className="font-medium" numberOfLines={1}>
           {title}
         </Text>
         {subtitle && (
-          <Text variant="small" tone="muted" className="text-body" numberOfLines={1}>
+          <Text variant="small" tone="muted" numberOfLines={1}>
             {subtitle}
           </Text>
         )}
@@ -36,10 +36,10 @@ export function ListItem({ title, subtitle, left, right, onPress }: Props) {
 }
 
 /** Two-letter subject tile used in History and Library (MA, SC…). */
-export function SubjectTile({ code }: { code: string }) {
+export function SubjectCode({ code }: { code: string }) {
   return (
-    <View className="h-11 w-11 items-center justify-center rounded-md bg-ink/5">
-      <Text variant="caption" className="font-bold">
+    <View className="h-10 w-10 items-center justify-center rounded-md bg-ink/5">
+      <Text variant="caption" tone="primary" className="font-bold">
         {code}
       </Text>
     </View>

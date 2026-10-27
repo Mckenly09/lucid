@@ -1,26 +1,78 @@
-import { type AndroidSymbol, type SFSymbol, SymbolView, type SymbolViewProps } from 'expo-symbols';
-import { styled } from 'nativewind';
+import {
+  ArrowUp,
+  Book,
+  Bookmark,
+  BookOpen,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  CircleCheck,
+  CircleHelp,
+  Clock,
+  Copy,
+  Flame,
+  House,
+  Info,
+  Lock,
+  MessageCircle,
+  RefreshCw,
+  Search,
+  Square,
+  TriangleAlert,
+  Wifi,
+  WifiOff,
+  X,
+} from 'lucide-react-native';
 
-// Lets icons take token colors from className (text-ink, text-success…) instead of a hex tintColor.
-const StyledSymbol = styled(SymbolView, {
-  className: { target: 'style', nativeStyleMapping: { color: 'tintColor' } },
-});
+import { type ColorToken, useColor } from '@/hooks/use-color';
 
-type Props = Omit<SymbolViewProps, 'name'> & {
-  ios: SFSymbol;
-  android: AndroidSymbol;
-  className?: string;
-};
+// The only icons the app uses (docs/ui.md "Icons"). Named imports keep the rest of Lucide out of the bundle.
+const ICONS = {
+  ArrowUp,
+  Book,
+  Bookmark,
+  BookOpen,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Circle,
+  CircleCheck,
+  CircleHelp,
+  Clock,
+  Copy,
+  Flame,
+  House,
+  Info,
+  Lock,
+  MessageCircle,
+  RefreshCw,
+  Search,
+  Square,
+  TriangleAlert,
+  Wifi,
+  WifiOff,
+  X,
+} as const;
 
-export function Icon({ ios, android, size = 20, className = 'text-ink', ...rest }: Props) {
+export type IconName = keyof typeof ICONS;
+export type IconTone = ColorToken | 'muted';
+
+type Props = { name: IconName; size?: number; tone?: IconTone; fill?: boolean };
+
+/** Lucide takes a color value, not className, so the tone is read from the theme tokens. */
+export function Icon({ name, size = 22, tone = 'ink', fill }: Props) {
+  const color = useColor(tone === 'muted' ? 'ink' : tone);
+  const Glyph = ICONS[name];
   return (
-    <StyledSymbol
-      name={{ ios, android, web: android }}
+    <Glyph
       size={size}
-      className={className}
+      color={color}
+      fill={fill ? color : 'none'}
+      strokeWidth={2}
+      opacity={tone === 'muted' ? 0.6 : 1}
       accessibilityElementsHidden
       importantForAccessibility="no"
-      {...rest}
     />
   );
 }

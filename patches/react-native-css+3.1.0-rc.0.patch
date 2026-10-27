@@ -1,0 +1,42 @@
+diff --git a/node_modules/react-native-css/dist/commonjs/native/styles/functions/color-mix.js b/node_modules/react-native-css/dist/commonjs/native/styles/functions/color-mix.js
+index 7c099e6..169448d 100644
+--- a/node_modules/react-native-css/dist/commonjs/native/styles/functions/color-mix.js
++++ b/node_modules/react-native-css/dist/commonjs/native/styles/functions/color-mix.js
+@@ -31,7 +31,8 @@ const colorMix = (resolveValue, value) => {
+     if (typeof rightValue !== "string") return;
+     const right = (0, _fn.parse)(rightValue);
+     let rightWeight = percentage();
+-    if (args.length) return;
++    // The compiler pads a trailing null for the omitted right weight.
++    if (args.some(arg => arg != null)) return;
+ 
+     // CSS Color 5: omitted weights are complementary, then both are normalized.
+     leftWeight ??= rightWeight === undefined ? 0.5 : 1 - rightWeight;
+diff --git a/node_modules/react-native-css/dist/module/native/styles/functions/color-mix.js b/node_modules/react-native-css/dist/module/native/styles/functions/color-mix.js
+index 4cdd49d..02d9c7f 100644
+--- a/node_modules/react-native-css/dist/module/native/styles/functions/color-mix.js
++++ b/node_modules/react-native-css/dist/module/native/styles/functions/color-mix.js
+@@ -27,7 +27,8 @@ export const colorMix = (resolveValue, value) => {
+     if (typeof rightValue !== "string") return;
+     const right = parse(rightValue);
+     let rightWeight = percentage();
+-    if (args.length) return;
++    // The compiler pads a trailing null for the omitted right weight.
++    if (args.some(arg => arg != null)) return;
+ 
+     // CSS Color 5: omitted weights are complementary, then both are normalized.
+     leftWeight ??= rightWeight === undefined ? 0.5 : 1 - rightWeight;
+diff --git a/node_modules/react-native-css/src/native/styles/functions/color-mix.ts b/node_modules/react-native-css/src/native/styles/functions/color-mix.ts
+index c134e49..657142a 100644
+--- a/node_modules/react-native-css/src/native/styles/functions/color-mix.ts
++++ b/node_modules/react-native-css/src/native/styles/functions/color-mix.ts
+@@ -37,7 +37,8 @@ export const colorMix: StyleFunctionResolver = (resolveValue, value) => {
+     if (typeof rightValue !== "string") return;
+     const right = parse(rightValue);
+     let rightWeight = percentage();
+-    if (args.length) return;
++    // The compiler pads a trailing null for the omitted right weight.
++    if (args.some((arg) => arg != null)) return;
+ 
+     // CSS Color 5: omitted weights are complementary, then both are normalized.
+     leftWeight ??= rightWeight === undefined ? 0.5 : 1 - rightWeight;

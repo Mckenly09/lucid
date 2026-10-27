@@ -8,32 +8,6 @@ export const SUGGESTIONS: { subject: SubjectId; q: string }[] = [
   { subject: 'filipino', q: 'Ano ang pang-uri?' },
 ];
 
-export const DEMO_CHAT = {
-  title: 'Linear equation',
-  subject: 'math' as SubjectId,
-  question: 'Solve 2x + 5 = 17',
-  answer: `#### Given
-2x + 5 = 17. We need to find x.
-
-#### Steps
-1. Subtract 5 from both sides
-
-\`\`\`
-2x = 17 − 5 = 12
-\`\`\`
-
-2. Divide both sides by 2
-
-\`\`\`
-x = 12 ÷ 2 = 6
-\`\`\`
-`,
-  finalAnswer: 'x = 6',
-  checked: true,
-  check: '2(6) + 5 = 12 + 5 = 17 ✓',
-  source: 'Math pack · Linear equations',
-};
-
 export type QuizQuestion = { question: string; choices: string[]; correct: number; why: string };
 
 export const DEMO_QUIZ: { topic: string; questions: QuizQuestion[] } = {
@@ -66,6 +40,8 @@ export const DEMO_QUIZ: { topic: string; questions: QuizQuestion[] } = {
   ],
 };
 
+export const DEMO_STREAK_DAYS = 5;
+
 export type FlashCard = { id: string; subject: SubjectId; topic: string; front: string; back: string };
 
 export const DEMO_CARDS: FlashCard[] = [
@@ -86,18 +62,6 @@ export const DEMO_CARDS: FlashCard[] = [
   },
 ];
 
-export type HistoryItem = { id: string; subject: SubjectId; question: string; preview: string; time: string; group: string };
-
-export const DEMO_HISTORY: HistoryItem[] = [
-  { id: 'h1', group: 'Today', subject: 'math', question: 'Solve 2x + 5 = 17', preview: 'Subtract 5 from both sides, then divide by 2…', time: '9:41' },
-  { id: 'h2', group: 'Today', subject: 'science', question: 'Why do plants need sunlight?', preview: 'Plants use light energy to make food through…', time: '8:15' },
-  { id: 'h3', group: 'Yesterday', subject: 'filipino', question: 'Ano ang pang-uri?', preview: 'Ang pang-uri ay salitang naglalarawan sa…', time: 'Mon' },
-  { id: 'h4', group: 'Yesterday', subject: 'english', question: 'Simple past vs present perfect', preview: 'Use simple past for finished actions with a…', time: 'Mon' },
-  { id: 'h5', group: 'Yesterday', subject: 'social', question: 'Causes of the Philippine Revolution', preview: 'Direct answer, key details, why it matters…', time: 'Mon' },
-  { id: 'h6', group: 'This week', subject: 'math', question: 'Area of a circle with r = 7 cm', preview: 'A = πr², so A = π × 49 ≈ 153.94 cm²', time: 'Sat' },
-  { id: 'h7', group: 'This week', subject: 'science', question: "Newton's second law example", preview: 'F = ma. A 2 kg ball pushed with…', time: 'Fri' },
-];
-
 export type PackStatus = 'installed' | 'update' | 'failed' | 'available';
 
 export const DEMO_PACKS: { subject: SubjectId; detail: string; sizeMB: number; status: PackStatus }[] = [
@@ -108,7 +72,3 @@ export const DEMO_PACKS: { subject: SubjectId; detail: string; sizeMB: number; s
   { subject: 'english', detail: 'Grades 7–10', sizeMB: 33, status: 'available' },
 ];
 
-export const DEMO_MODELS = [
-  { id: 'lite', name: 'Lucid Lite', description: 'Fast · best for most phones', sizeMB: 1000, minRamGB: 3 },
-  { id: 'plus', name: 'Lucid Plus', description: 'Smarter answers · slower', sizeMB: 2300, minRamGB: 6 },
-];
