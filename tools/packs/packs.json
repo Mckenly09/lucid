@@ -337,6 +337,59 @@
         "plate tectonics",
         "seasons tilt"
       ]
+    },
+    {
+      "id": "math-genmath-functions",
+      "name": "Math · Gen Math: Functions",
+      "subject": "math",
+      "version": 1,
+      "source": "openstax-algebra-trigonometry-2e",
+      "topicMap": {
+        "m51261": "math11-functions",
+        "m51262": "math11-functions",
+        "m51265": "math11-functions",
+        "m51279": "math11-rational-functions",
+        "m51268": "math11-inverse-functions",
+        "m51280": "math11-inverse-functions",
+        "m49361": "math11-exponential",
+        "m49362": "math11-exponential",
+        "m49367": "math11-exponential",
+        "m49363": "math11-logarithmic",
+        "m49364": "math11-logarithmic",
+        "m49365": "math11-logarithmic",
+        "m49366": "math11-logarithmic"
+      },
+      "checks": [
+        "inverse function",
+        "rational function",
+        "logarithm properties"
+      ]
+    },
+    {
+      "id": "math-genmath-business-logic",
+      "name": "Math · Gen Math: Business Math and Logic",
+      "subject": "math",
+      "version": 2,
+      "source": "openstax-contemporary-mathematics",
+      "topicMap": {
+        "m00059": "math11-interest",
+        "m00060": "math11-interest",
+        "m00062": "math11-annuities",
+        "m00063": "math11-stocks-bonds",
+        "m00064": "math11-loans",
+        "m00017": "math11-logic",
+        "m00018": "math11-logic",
+        "m00019": "math11-logic",
+        "m00020": "math11-logic",
+        "m00021": "math11-logic",
+        "m00022": "math11-logic",
+        "m00023": "math11-logic"
+      },
+      "checks": [
+        "compound interest",
+        "truth table",
+        "annuity"
+      ]
     }
   ]
 }

@@ -86,6 +86,18 @@
       { "code": "math10-circles-coordinates", "name": "Distance, midpoint and circles on the coordinate plane" },
       { "code": "math10-counting", "name": "Permutations and combinations" },
       { "code": "math10-probability", "name": "Probability" }
+    ],
+    "11": [
+      { "code": "math11-functions", "name": "Functions: evaluation, operations and composition" },
+      { "code": "math11-rational-functions", "name": "Rational functions, equations and inequalities" },
+      { "code": "math11-inverse-functions", "name": "Inverse functions" },
+      { "code": "math11-exponential", "name": "Exponential functions, equations and models" },
+      { "code": "math11-logarithmic", "name": "Logarithmic functions, properties and equations" },
+      { "code": "math11-interest", "name": "Simple and compound interest" },
+      { "code": "math11-annuities", "name": "Annuities" },
+      { "code": "math11-stocks-bonds", "name": "Stocks and bonds" },
+      { "code": "math11-loans", "name": "Business and consumer loans" },
+      { "code": "math11-logic", "name": "Propositions, truth tables and logical arguments" }
     ]
   },
   "english": {

@@ -56,6 +56,23 @@ it('reads chapters, module order and the declared license from a collection', ()
   ]);
 });
 
+it('reads the license from <col:metadata> too (Contemporary Mathematics)', () => {
+  const col = parseCollection(`<col:collection xmlns:col="http://cnx.rice.edu/collxml" xmlns:md="http://cnx.rice.edu/mdml">
+<col:metadata><md:title>Contemporary Mathematics</md:title><md:license url="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC</md:license></col:metadata>
+<col:content><col:subcollection><md:title>Logic</md:title><col:content><col:module document="m1"/></col:content></col:subcollection></col:content></col:collection>`);
+  expect(col.title).toBe('Contemporary Mathematics');
+  expect(col.licenseUrl).toBe('http://creativecommons.org/licenses/by-nc-sa/4.0/');
+});
+
+it('reads MathML written without the m: prefix (Contemporary Mathematics)', () => {
+  const mod = parseModule(
+    'm1',
+    `<document xmlns="http://cnx.rice.edu/cnxml"><title>Compound Interest</title><content><para>The formula <math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi>A</mi><mo>=</mo><mi>P</mi><msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><mfrac><mi>r</mi><mi>n</mi></mfrac><mo>)</mo></mrow><mrow><mi>n</mi><mi>t</mi></mrow></msup></mrow></math> gives the future value.</para></content></document>`,
+  );
+  const text = mod.sections.flatMap((s) => s.paragraphs).join(' ');
+  expect(text).toContain('A = P(1+r/n)^(nt)');
+});
+
 it('reads pretty-printed MathML (whitespace between elements)', () => {
   const xml = `<document xmlns:m="http://www.w3.org/1998/Math/MathML"><title>Energy</title><content><para>
 <m:math>

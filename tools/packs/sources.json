@@ -337,6 +337,21 @@
           "sha256": "2ed8f69e34ca7f7af9da1f8721bca27005884c3762cf753ff7701bfe50591415"
         }
       ]
+    },
+    {
+      "id": "openstax-contemporary-mathematics",
+      "title": "Contemporary Mathematics",
+      "authors": "Donna Kirk",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-contemporary-mathematics.git",
+      "commit": "2319ce22654c12c946a7faed3b135f4a2c6f613e",
+      "collection": "collections/contemporary-mathematics.collection.xml",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "bookUrl": "https://openstax.org/details/books/contemporary-mathematics",
+      "pagesUrl": "https://openstax.org/books/contemporary-mathematics/pages/",
+      "evalOnly": false
     }
   ]
 }
