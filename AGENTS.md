@@ -144,3 +144,4 @@ Full spec in `docs/auth.md`. The essentials:
 - Don't bundle model files in the app binary.
 - Don't add a dependency that requires network at runtime.
 - Don't remove the "AI can be wrong" notice.
+- Don't push on github just commit when user give permission.
