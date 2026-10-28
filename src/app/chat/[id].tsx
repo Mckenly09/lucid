@@ -2,7 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Paths } from 'expo-file-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, FlatList, View } from 'react-native';
+import { AccessibilityInfo, FlatList, Linking, Platform, View } from 'react-native';
 
 import { Badge } from '@/components/badge';
 import { Banner } from '@/components/banner';
@@ -17,21 +17,25 @@ import { Icon } from '@/components/icon';
 import { IconButton } from '@/components/icon-button';
 import { formatSize } from '@/components/model-card';
 import { Screen } from '@/components/screen';
+import { Sheet } from '@/components/sheet';
 import { SourceChips } from '@/components/source-chip';
 import { Text } from '@/components/text';
 import { TypingDots } from '@/components/typing-dots';
 import { useAuth } from '@/features/auth/useAuth';
 import { type ChatError, useChat } from '@/features/chat/store';
+import { sourceDetails } from '@/features/knowledge/retrieve';
+import { ChoiceSheet } from '@/features/settings/components/ChoiceSheet';
 import { type CardDraft, SaveCardSheet } from '@/features/flashcards/components/SaveCardSheet';
 import { shortenAnswer } from '@/features/flashcards/services/shorten';
 import { useModels } from '@/features/models/store';
 import { EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
-import { subject } from '@/llm/subjects/config';
+import { subject, SUBJECTS } from '@/llm/subjects/config';
 import { isFilipino } from '@/llm/subjects/detect';
 
 const MB = 1024 ** 2;
 const LOW_STORAGE_BYTES = 500 * MB;
 const EXPLAIN_LABELS = new Set(Object.values(EXPLAIN_LABEL));
+const SUBJECT_OPTIONS = SUBJECTS.map((s) => ({ id: s.id, label: s.short }));
 
 const ERRORS: Record<ChatError, { title?: string; message: string }> = {
   'no-model': { message: "Lucid's brain isn't downloaded on this phone yet." },
@@ -49,7 +53,7 @@ export default function Chat() {
   const busy = useChat((s) => s.activeId === id);
   const status = useChat((s) => s.status);
   const error = useChat((s) => (s.error?.chatId === id ? s.error.kind : null));
-  const { ask, explain, retry, stop } = useChat.getState();
+  const { ask, explain, retry, stop, setSubject } = useChat.getState();
   const list = useRef<FlatList>(null);
   const installedId = useModels((s) => s.installedId);
   // Read once per screen: the model needs free space to run well, and a full phone slows everything down.
@@ -59,6 +63,8 @@ export default function Chat() {
   // The answer (by message count) saved as a card, so the bookmark shows it.
   const [savedAt, setSavedAt] = useState(-1);
   const [copiedAt, setCopiedAt] = useState(-1);
+  const [pickingSubject, setPickingSubject] = useState(false);
+  const [source, setSource] = useState<ReturnType<typeof sourceDetails> | null>(null);
 
   // Chats from History or Home load from SQLite (a quick sync read, once per screen); a new one is already in memory.
   const [found] = useState(() => !!user && useChat.getState().open(user.uid, id));
@@ -118,7 +124,14 @@ export default function Chat() {
           placeholder="Ask a follow-up…"
         />
       }>
-      <Header title={first} bordered right={<Badge label={subject(chat.subject).short} status="primary" />} />
+      <Header title={first} bordered right={
+          <Badge
+            label={subject(chat.subject).short}
+            status="primary"
+            onPress={() => setPickingSubject(true)}
+            accessibilityLabel={`Subject: ${subject(chat.subject).short}. Change subject`}
+          />
+        } />
       <FlatList
         ref={list}
         data={chat.messages}
@@ -127,7 +140,7 @@ export default function Chat() {
           <ChatBubble
             role={item.role}
             content={item.content}
-            footer={item.sources?.length ? <SourceChips sources={item.sources} /> : undefined}
+            footer={item.sources?.length ? <SourceChips sources={item.sources} onPress={(s) => setSource(sourceDetails(s))} /> : undefined}
           />
         )}
         contentContainerClassName="gap-4 p-4"
@@ -165,6 +178,14 @@ export default function Chat() {
                 title="Low storage"
                 message={`Only ${formatSize(freeBytes / MB)} left. Lucid may run slowly.`}
                 icon={<Icon name="TriangleAlert" size={22} tone="warning" />}
+              />
+            )}
+            {/* Android only: iOS has no public link to its storage settings (design 05c). */}
+            {lowStorage && Platform.OS === 'android' && (
+              <Button
+                label="Free up space"
+                variant="ghost"
+                onPress={() => void Linking.sendIntent('android.settings.INTERNAL_STORAGE_SETTINGS').catch(() => {})}
               />
             )}
             {answered && (
@@ -206,6 +227,44 @@ export default function Chat() {
           setSavedAt(chat.messages.length);
         }}
       />
+      {/* Option b (todo.md): the new subject applies to follow-up questions; earlier answers stay. */}
+      <ChoiceSheet
+        title="Subject for follow-ups"
+        visible={pickingSubject}
+        value={chat.subject}
+        options={SUBJECT_OPTIONS}
+        onPick={(s) => setSubject(id, s)}
+        onClose={() => setPickingSubject(false)}
+      />
+      {/* packs.md §4: a chip opens the note's title and the pack's license and attribution. */}
+      <Sheet visible={!!source} onClose={() => setSource(null)} title={source?.title}>
+        {source && (
+          <View className="gap-3 pt-1">
+            {source.mine ? (
+              <Text tone="muted">From your own notes in My packs.</Text>
+            ) : source.pack ? (
+              <>
+                <Text variant="small" tone="muted">
+                  {source.pack.name}
+                </Text>
+                <View className="gap-1">
+                  <Text variant="label">License</Text>
+                  <Text>{source.pack.license}</Text>
+                </View>
+                <View className="gap-1">
+                  <Text variant="label">Source</Text>
+                  <Text variant="small" tone="muted">
+                    {source.pack.attribution}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <Text tone="muted">This pack is no longer on your phone.</Text>
+            )}
+            <Button label="Close" variant="secondary" onPress={() => setSource(null)} />
+          </View>
+        )}
+      </Sheet>
     </Screen>
   );
 }

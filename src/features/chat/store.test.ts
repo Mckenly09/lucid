@@ -1,19 +1,15 @@
-import { getChat, saveMessage } from '@/db/chats';
+import { getChat, saveMessage, setChatSubject } from '@/db/chats';
 import { findReferenceNotes } from '@/features/knowledge/retrieve';
-import { useModels } from '@/features/models/store';
+import { installedModelPath } from '@/features/models/store';
 import * as engine from '@/llm/engine';
 
 import { useChat } from './store';
 
 // Never load a real model in tests (AGENTS.md): the engine, model files and database are faked.
 jest.mock('@/llm/engine', () => ({ isLoaded: jest.fn(), load: jest.fn(), generate: jest.fn() }));
-jest.mock('@/features/models/services/files', () => ({
-  modelFile: () => ({ uri: 'file:///doc/models/m.gguf' }),
-  toPath: (uri: string) => uri.replace('file://', ''),
-}));
-jest.mock('@/features/models/store', () => ({ useModels: { getState: jest.fn() } }));
+jest.mock('@/features/models/store', () => ({ installedModelPath: jest.fn() }));
 jest.mock('@/features/settings/store', () => ({ useSettings: { getState: () => ({ answerLanguage: 'same' }) } }));
-jest.mock('@/db/chats', () => ({ saveMessage: jest.fn(), getChat: jest.fn() }));
+jest.mock('@/db/chats', () => ({ saveMessage: jest.fn(), getChat: jest.fn(), setChatSubject: jest.fn() }));
 jest.mock('@/features/knowledge/retrieve', () => ({ findReferenceNotes: jest.fn() }));
 
 const mocked = jest.mocked(engine);
@@ -42,7 +38,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(saveMessage).mockReset();
   useChat.setState({ chats: {}, activeId: null, status: 'idle', error: null });
-  jest.mocked(useModels.getState).mockReturnValue({ installedId: 'lite' } as ReturnType<typeof useModels.getState>);
+  jest.mocked(installedModelPath).mockReturnValue('/doc/models/m.gguf');
   mocked.isLoaded.mockReturnValue(false);
   mocked.load.mockResolvedValue();
   jest.mocked(findReferenceNotes).mockReturnValue({ notes: [], sources: [] });
@@ -170,8 +166,22 @@ it('sends earlier messages as history for a follow-up', async () => {
   expect(mocked.generate.mock.calls[1][0].turns.map((t) => t.content)).toEqual(['first', 'ok', 'second']);
 });
 
+it('a changed subject applies to the next question and is saved', async () => {
+  fakeAnswer(['ok']);
+  const id = useChat.getState().newChat('u1', 'math');
+  await useChat.getState().ask(id, 'first');
+  useChat.getState().setSubject(id, 'science');
+  expect(jest.mocked(setChatSubject)).toHaveBeenCalledWith('u1', id, 'science');
+
+  fakeAnswer(['ok']);
+  await useChat.getState().ask(id, 'second');
+  expect(mocked.generate.mock.calls[0][0].temperature).toBe(0.1); // math prompt for the first answer
+  expect(mocked.generate.mock.calls[1][0].temperature).not.toBe(0.1);
+  expect(useChat.getState().chats[id].messages[1].content).toBe('ok'); // the first answer is kept
+});
+
 it('shows an error and makes no model call when nothing is downloaded', async () => {
-  jest.mocked(useModels.getState).mockReturnValue({ installedId: null } as ReturnType<typeof useModels.getState>);
+  jest.mocked(installedModelPath).mockReturnValue(null);
   const id = useChat.getState().newChat('u1', 'math');
   await useChat.getState().ask(id, 'hi');
   expect(useChat.getState().error).toEqual({ chatId: id, kind: 'no-model' });

@@ -1,7 +1,5 @@
-import { modelFile, toPath } from '@/features/models/services/files';
-import { useModels } from '@/features/models/store';
+import { installedModelPath } from '@/features/models/store';
 import * as engine from '@/llm/engine';
-import { modelById } from '@/llm/models';
 import { buildQuizPrompt } from '@/llm/prompts';
 
 import { parseQuiz, type QuizQuestion } from './services/parse';
@@ -15,9 +13,8 @@ export function makeQuiz(answer: string): QuizRun {
   let generation: engine.Generation | null = null;
 
   const done = (async () => {
-    const installedId = useModels.getState().installedId;
-    if (!installedId) return { error: 'no-model' as const };
-    const path = toPath(modelFile(modelById(installedId)).uri);
+    const path = installedModelPath();
+    if (!path) return { error: 'no-model' as const };
     try {
       await engine.load(path);
     } catch {

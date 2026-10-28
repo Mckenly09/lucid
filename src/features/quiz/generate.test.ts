@@ -1,12 +1,11 @@
-import { useModels } from '@/features/models/store';
+import { installedModelPath } from '@/features/models/store';
 import * as engine from '@/llm/engine';
 
 import { makeQuiz } from './generate';
 
 // Never load a real model in tests (AGENTS.md).
 jest.mock('@/llm/engine', () => ({ load: jest.fn(), generate: jest.fn() }));
-jest.mock('@/features/models/services/files', () => ({ modelFile: () => ({ uri: 'file:///m.gguf' }), toPath: (u: string) => u }));
-jest.mock('@/features/models/store', () => ({ useModels: { getState: jest.fn() } }));
+jest.mock('@/features/models/store', () => ({ installedModelPath: jest.fn() }));
 
 const mocked = jest.mocked(engine);
 const good = JSON.stringify({
@@ -18,7 +17,7 @@ const replies = (...texts: string[]) =>
 beforeEach(() => {
   jest.resetAllMocks();
   mocked.load.mockResolvedValue();
-  jest.mocked(useModels.getState).mockReturnValue({ installedId: 'lite' } as ReturnType<typeof useModels.getState>);
+  jest.mocked(installedModelPath).mockReturnValue('file:///m.gguf');
 });
 
 it('retries once after bad JSON, then returns the quiz', async () => {
@@ -35,9 +34,9 @@ it('gives up after two bad tries', async () => {
 });
 
 it('reports a missing model or a failed load without generating', async () => {
-  jest.mocked(useModels.getState).mockReturnValue({ installedId: null } as ReturnType<typeof useModels.getState>);
+  jest.mocked(installedModelPath).mockReturnValue(null);
   expect(await makeQuiz('x').done).toEqual({ error: 'no-model' });
-  jest.mocked(useModels.getState).mockReturnValue({ installedId: 'lite' } as ReturnType<typeof useModels.getState>);
+  jest.mocked(installedModelPath).mockReturnValue('file:///m.gguf');
   mocked.load.mockRejectedValue(new Error('oom'));
   expect(await makeQuiz('x').done).toEqual({ error: 'load' });
   expect(mocked.generate).not.toHaveBeenCalled();

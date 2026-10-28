@@ -1,12 +1,10 @@
 import { create } from 'zustand';
 
-import { getChat, saveMessage } from '@/db/chats';
+import { getChat, saveMessage, setChatSubject } from '@/db/chats';
 import { findReferenceNotes } from '@/features/knowledge/retrieve';
-import { modelFile, toPath } from '@/features/models/services/files';
-import { useModels } from '@/features/models/store';
+import { installedModelPath } from '@/features/models/store';
 import { useSettings } from '@/features/settings/store';
 import * as engine from '@/llm/engine';
-import { modelById } from '@/llm/models';
 import { buildExplainPrompt, buildPrompt, EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
 import { checkArithmetic } from '@/llm/subjects/calculator';
 import { subject, type SubjectId } from '@/llm/subjects/config';
@@ -27,6 +25,8 @@ type State = {
   newChat: (uid: string, subject: SubjectId) => string;
   /** Loads a saved chat into memory; false when it doesn't exist for this account. */
   open: (uid: string, chatId: string) => boolean;
+  /** Changes the subject for follow-up questions (option b in todo.md); earlier answers aren't re-asked. */
+  setSubject: (chatId: string, subject: SubjectId) => void;
   ask: (chatId: string, question: string) => Promise<void>;
   /** Explain simpler / Give an example / language switch, on the last answer only. */
   explain: (chatId: string, kind: ExplainKind) => Promise<void>;
@@ -76,9 +76,8 @@ export const useChat = create<State>()((set, get) => {
   const answer = async (chat: Chat, prompt: Prompt) => {
     const chatId = chat.id;
     lastPrompt = { chatId, prompt };
-    const installedId = useModels.getState().installedId;
-    if (!installedId) return fail(chatId, 'no-model');
-    const path = toPath(modelFile(modelById(installedId)).uri);
+    const path = installedModelPath();
+    if (!path) return fail(chatId, 'no-model');
     if (!engine.isLoaded(path)) {
       set({ status: 'loading' });
       try {
@@ -143,6 +142,17 @@ export const useChat = create<State>()((set, get) => {
       if (!stored) return false;
       set((s) => ({ chats: { ...s.chats, [chatId]: { ...stored, uid } } }));
       return true;
+    },
+
+    setSubject: (chatId, subject) => {
+      const chat = get().chats[chatId];
+      if (!chat || chat.subject === subject) return;
+      set((s) => ({ chats: { ...s.chats, [chatId]: { ...chat, subject } } }));
+      try {
+        setChatSubject(chat.uid, chatId, subject);
+      } catch (e) {
+        console.warn('Could not save subject', e instanceof Error ? e.message : e);
+      }
     },
 
     ask: async (chatId, question) => {
