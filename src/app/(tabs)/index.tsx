@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { DueCardsCard } from '@/components/due-cards-card';
-import { Icon } from '@/components/icon';
+import { Icon, type IconName } from '@/components/icon';
 import { SubjectCode } from '@/components/list-item';
 import { Logo } from '@/components/logo';
 import { OfflineBadge } from '@/components/offline-badge';
@@ -13,7 +13,7 @@ import { SubjectTile } from '@/components/subject-tile';
 import { Text } from '@/components/text';
 import { AccountButton } from '@/features/auth/components/AccountButton';
 import { useAuth } from '@/features/auth/useAuth';
-import { useChat } from '@/features/chat/store';
+import { askNow } from '@/features/chat/ask-now';
 import { SUGGESTIONS } from '@/features/demo-data';
 import { reviewMinutes, useDecks } from '@/features/flashcards/useCards';
 import { groupOf, timeLabel } from '@/features/history/services/when';
@@ -42,13 +42,6 @@ export default function Home() {
 
   const openAsk = (params: { subject?: SubjectId; at?: string; focus?: string }) =>
     router.navigate({ pathname: '/ask', params });
-  const askNow = (subjectId: SubjectId, q: string) => {
-    if (!user) return;
-    const { newChat, ask } = useChat.getState();
-    const id = newChat(user.uid, subjectId);
-    void ask(id, q);
-    router.push({ pathname: '/chat/[id]', params: { id } });
-  };
 
   return (
     <Screen scroll edges={['top']}>
@@ -88,6 +81,14 @@ export default function Home() {
           <Icon name="ArrowUp" size={20} tone="paper" />
         </View>
       </Pressable>
+
+      {/* Tools sit under the Ask box on the everyday Home; the first-time Home keeps to getting started (design T1/T2). */}
+      {!firstTime && (
+        <View className="mt-4 flex-row gap-2">
+          <ToolTile icon="Calculator" title="Calculator" caption="Scientific" onPress={() => router.push('/tools/calculator')} />
+          <ToolTile icon="Atom" title="Periodic table" caption="118 elements" onPress={() => router.push('/tools/periodic-table')} />
+        </View>
+      )}
 
       {due > 0 && (
         <View className="mt-6">
@@ -133,7 +134,7 @@ export default function Home() {
             {SUGGESTIONS.map((x) => (
               <Card
                 key={x.q}
-                onPress={() => askNow(x.subject, x.q)}
+                onPress={() => user && askNow(user.uid, x.subject, x.q)}
                 accessibilityLabel={`Ask: ${x.q}`}
                 className="flex-row items-center gap-3">
                 <SubjectCode code={subject(x.subject).code} />
@@ -199,5 +200,27 @@ export default function Home() {
         </>
       )}
     </Screen>
+  );
+}
+
+function ToolTile({ icon, title, caption, onPress }: { icon: IconName; title: string; caption: string; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}, ${caption}`}
+      className="min-h-11 flex-1 flex-row items-center gap-3 rounded-md bg-ink/5 px-3 py-2 active:bg-ink/10">
+      <View className="h-9 w-9 items-center justify-center rounded-md bg-primary/10">
+        <Icon name={icon} size={20} tone="primary" />
+      </View>
+      <View className="flex-1">
+        <Text variant="small" className="font-semibold" numberOfLines={1}>
+          {title}
+        </Text>
+        <Text variant="caption" tone="muted" className="font-sans" numberOfLines={1}>
+          {caption}
+        </Text>
+      </View>
+    </Pressable>
   );
 }

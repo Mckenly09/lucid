@@ -1,10 +1,12 @@
 import {
   ArrowUp,
+  Atom,
   Bell,
   Book,
   Bookmark,
   BookmarkCheck,
   BookOpen,
+  Calculator,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -45,11 +47,13 @@ import { type ColorToken, useColor } from '@/hooks/use-color';
 // The only icons the app uses (docs/ui.md "Icons"). Named imports keep the rest of Lucide out of the bundle.
 const ICONS = {
   ArrowUp,
+  Atom,
   Bell,
   Book,
   Bookmark,
   BookmarkCheck,
   BookOpen,
+  Calculator,
   Check,
   ChevronLeft,
   ChevronRight,

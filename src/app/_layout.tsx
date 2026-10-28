@@ -79,6 +79,8 @@ function AppStack() {
           <Stack.Screen name="settings/model" />
           <Stack.Screen name="packs/[id]" />
           <Stack.Screen name="packs/note" />
+          <Stack.Screen name="tools/calculator" />
+          <Stack.Screen name="tools/periodic-table" />
         </Stack.Protected>
         {/* Not guarded: sign-in links to the privacy policy before the student has an account. */}
         <Stack.Screen name="settings/privacy" />
