@@ -77,10 +77,11 @@ function AppStack() {
           <Stack.Screen name="cards/review" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="settings/index" />
           <Stack.Screen name="settings/model" />
-          <Stack.Screen name="settings/privacy" />
           <Stack.Screen name="packs/[id]" />
           <Stack.Screen name="packs/note" />
         </Stack.Protected>
+        {/* Not guarded: sign-in links to the privacy policy before the student has an account. */}
+        <Stack.Screen name="settings/privacy" />
       </Stack>
       <SplashOverlay />
     </ThemeProvider>

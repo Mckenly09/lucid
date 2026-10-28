@@ -1,5 +1,6 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
-import { Linking, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 import { Banner } from '@/components/banner';
 import { Button } from '@/components/button';
@@ -35,9 +36,6 @@ const ERRORS: Record<Exclude<AuthErrorKind, 'cancelled'>, { status: 'warning' | 
     message: "Sign-in didn't work. Please try again.",
   },
 };
-
-// shortcut: not a link until EXPO_PUBLIC_PRIVACY_URL is set; required before release (auth.md §5).
-const PRIVACY_URL = process.env.EXPO_PUBLIC_PRIVACY_URL;
 
 export default function SignIn() {
   const { signInWithGoogle, continueOffline } = useAuth();
@@ -90,8 +88,8 @@ export default function SignIn() {
               <Text
                 variant="caption"
                 tone="primary"
-                accessibilityRole={PRIVACY_URL ? 'link' : undefined}
-                onPress={PRIVACY_URL ? () => Linking.openURL(PRIVACY_URL) : undefined}
+                accessibilityRole="link"
+                onPress={() => router.push('/settings/privacy')}
                 className="font-semibold underline">
                 Privacy Policy
               </Text>
