@@ -62,6 +62,14 @@ export function saveReview(uid: string, id: string, next: Scheduled) {
   );
 }
 
+export function deleteCard(uid: string, id: string) {
+  getDb().runSync('DELETE FROM cards WHERE id = ? AND uid = ?', id, uid);
+}
+
+export function deleteDeck(uid: string, subject: SubjectId) {
+  getDb().runSync('DELETE FROM cards WHERE uid = ? AND subject = ?', uid, subject);
+}
+
 /** Per subject, biggest deck first. */
 export function listDecks(uid: string, dueBefore: number): Deck[] {
   return getDb().getAllSync<Deck>(

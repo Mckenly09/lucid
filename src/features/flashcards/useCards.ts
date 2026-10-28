@@ -10,14 +10,12 @@ import { endOfDay } from './services/schedule';
 export function useDecks() {
   const { user } = useAuth();
   const uid = user?.uid;
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const read = useCallback(() => (uid ? listDecks(uid, endOfDay(Date.now())) : []), [uid]);
+  // First read before the first frame (see useChats); focus re-reads after.
+  const [decks, setDecks] = useState<Deck[]>(read);
 
-  useFocusEffect(
-    useCallback(() => {
-      setDecks(uid ? listDecks(uid, endOfDay(Date.now())) : []);
-    }, [uid]),
-  );
-  return { decks, due: decks.reduce((n, d) => n + d.due, 0), total: decks.reduce((n, d) => n + d.total, 0) };
+  useFocusEffect(useCallback(() => setDecks(read()), [read]));
+  return { decks, refresh: () => setDecks(read()), due: decks.reduce((n, d) => n + d.due, 0), total: decks.reduce((n, d) => n + d.total, 0) };
 }
 
 /** ~30 s per card. */
