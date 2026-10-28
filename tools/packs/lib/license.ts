@@ -15,6 +15,34 @@ const CC_URLS: [RegExp, string][] = [
   [/licenses\/by\/4\.0/i, 'CC BY 4.0'],
 ];
 
+export const US_GOV = 'Public domain (US Government)';
+export const PH_GOV = 'Philippine Government work';
+
+/**
+ * Government sites whose pages may ship, and why (docs/packs.md §2). US federal works are public domain (17 U.S.C.
+ * §105; NWS and NASA say so on their sites). Philippine government works have no copyright (IP Code §176), but using
+ * them for profit needs the agency's approval, so they only pass while APP_COMMERCIAL=false. Any other host stops.
+ */
+const GOV_HOSTS: Record<string, string> = {
+  'pubs.usgs.gov': US_GOV,
+  'www.noaa.gov': US_GOV,
+  'www.weather.gov': US_GOV,
+  'science.nasa.gov': US_GOV,
+  'spaceplace.nasa.gov': US_GOV,
+  'www.phivolcs.dost.gov.ph': PH_GOV,
+  'www.pagasa.dost.gov.ph': PH_GOV,
+};
+
+/** The license of a page on a listed government site (https only), or null for any other URL. */
+export function licenseFromHost(url: string): string | null {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' ? (GOV_HOSTS[u.hostname] ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The license named by a LICENSE file's text, or null if it isn't one we recognize. */
 export function licenseFromText(text: string): string | null {
   const head = text.slice(0, 300);
@@ -37,7 +65,12 @@ export function checkLicense(opts: { found: (string | null)[]; declared: string;
     if (!f) throw new Error(`Could not read a known license from the source; sources.json says ${declared}. Stopping.`);
     if (f !== declared) throw new Error(`License mismatch: the source says ${f}, sources.json says ${declared}. Stopping.`);
   }
-  if (!CC_TITLES.some(([, id]) => id === declared)) throw new Error(`License ${declared} is not allowed in packs.`);
+  if (!CC_TITLES.some(([, id]) => id === declared) && declared !== US_GOV && declared !== PH_GOV) {
+    throw new Error(`License ${declared} is not allowed in packs.`);
+  }
+  if (commercial && declared === PH_GOV) {
+    throw new Error(`${declared}s need the agency's approval for commercial use, but APP_COMMERCIAL=true. Stopping.`);
+  }
   if (commercial && declared.includes('NC')) {
     throw new Error(`${declared} is NonCommercial, but APP_COMMERCIAL=true in config.json. Stopping.`);
   }

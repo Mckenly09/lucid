@@ -36,7 +36,7 @@ it('turns a module into sections of plain text, dropping figures, links and exer
     '- homogeneous',
     '- heterogeneous',
     'Example 1.1',
-    'Find density: d = 10g/2 and x^2 and sqrt(9).',
+    'Find density: d = (10g)/2 and x^2 and sqrt(9).',
   ]);
   expect(JSON.stringify(m)).not.toMatch(/beaker|Three states|Visit this website|Why\?|By the end|Teacher support|video|Pick one/);
 });
@@ -67,5 +67,30 @@ it('reads pretty-printed MathML (whitespace between elements)', () => {
   </m:mrow>
 </m:math></para></content></document>`;
   const text = parseModule('m', xml).sections[0].paragraphs[0];
-  expect(text.replace(/\s+/g, ' ')).toBe('KE1 = 1/2mv^2');
+  expect(text.replace(/\s+/g, ' ')).toBe('KE1 = 1/2 mv^2');
+});
+
+it('writes roots and keeps powers apart (algebra)', () => {
+  const m = (inner: string) => `<m:math>${inner}</m:math>`;
+  const xml = `<document xmlns:m="http://www.w3.org/1998/Math/MathML"><title>Roots</title><content><para>${[
+    m('<m:mroot><m:mn>8</m:mn><m:mn>3</m:mn></m:mroot><m:mo>=</m:mo><m:mn>2</m:mn>'),
+    m('<m:mroot><m:mi>x</m:mi><m:mn>4</m:mn></m:mroot>'),
+    m('<m:msup><m:mi>a</m:mi><m:mi>m</m:mi></m:msup><m:msup><m:mi>b</m:mi><m:mi>m</m:mi></m:msup>'),
+    m('<m:msup><m:mn>8</m:mn><m:mfrac><m:mn>1</m:mn><m:mn>3</m:mn></m:mfrac></m:msup>'),
+  ].join(', ')}.</para></content></document>`;
+  expect(parseModule('m', xml).sections[0].paragraphs[0]).toBe('cbrt(8) = 2, nthRoot(x, 4), a^m b^m, 8^(1/3).');
+});
+
+it('drops a worked example whose solution is only a picture, and the readiness quiz', () => {
+  const xml = `<document xmlns:m="http://www.w3.org/1998/Math/MathML"><title>Quadratic Formula</title><content>
+<note class="be-prepared"><para>Before you get started, take this readiness quiz.</para></note>
+<para>The solutions are <m:math><m:mi>x</m:mi><m:mo>=</m:mo><m:mfrac><m:mi>b</m:mi><m:mrow><m:mn>2</m:mn><m:mi>a</m:mi></m:mrow></m:mfrac></m:math>.</para>
+<example><exercise><problem><para>Solve x^2 = 4.</para></problem><solution><title>Solution</title><table><tgroup><tbody><row><entry><media><image src="a.png"/></media></entry></row></tbody></tgroup></table></solution></exercise></example>
+<example><exercise><problem><para>Solve x = 1.</para></problem><solution><para>It is already solved.</para></solution></exercise></example>
+</content></document>`;
+  expect(parseModule('m', xml).sections[0].paragraphs).toEqual([
+    'The solutions are x = b/(2a).',
+    'Solve x = 1.',
+    'It is already solved.',
+  ]);
 });

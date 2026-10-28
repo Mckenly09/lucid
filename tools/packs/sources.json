@@ -44,6 +44,299 @@
       "bookUrl": "https://openstax.org/details/books/concepts-biology",
       "pagesUrl": "https://openstax.org/books/concepts-biology/pages/",
       "evalOnly": false
+    },
+    {
+      "id": "openstax-elementary-algebra-2e",
+      "title": "Elementary Algebra 2e",
+      "authors": "Lynn Marecek, MaryAnne Anthony-Smith, Andrea Honeycutt Mathis",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-prealgebra-bundle.git",
+      "commit": "ad40c7e3c9a909cde81a24c526f52fe26a51fb14",
+      "collection": "collections/elementary-algebra-2e.collection.xml",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "bookUrl": "https://openstax.org/details/books/elementary-algebra-2e",
+      "pagesUrl": "https://openstax.org/books/elementary-algebra-2e/pages/",
+      "evalOnly": false
+    },
+    {
+      "id": "openstax-intermediate-algebra-2e",
+      "title": "Intermediate Algebra 2e",
+      "authors": "Lynn Marecek, Andrea Honeycutt Mathis",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-prealgebra-bundle.git",
+      "commit": "ad40c7e3c9a909cde81a24c526f52fe26a51fb14",
+      "collection": "collections/intermediate-algebra-2e.collection.xml",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "bookUrl": "https://openstax.org/details/books/intermediate-algebra-2e",
+      "pagesUrl": "https://openstax.org/books/intermediate-algebra-2e/pages/",
+      "evalOnly": false
+    },
+    {
+      "id": "openstax-prealgebra-2e",
+      "title": "Prealgebra 2e",
+      "authors": "Lynn Marecek, MaryAnne Anthony-Smith, Andrea Honeycutt Mathis",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-prealgebra-bundle.git",
+      "commit": "ad40c7e3c9a909cde81a24c526f52fe26a51fb14",
+      "collection": "collections/prealgebra-2e.collection.xml",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "bookUrl": "https://openstax.org/details/books/prealgebra-2e",
+      "pagesUrl": "https://openstax.org/books/prealgebra-2e/pages/",
+      "evalOnly": false
+    },
+    {
+      "id": "openstax-algebra-trigonometry-2e",
+      "title": "Algebra and Trigonometry 2e",
+      "authors": "Jay Abramson",
+      "publisher": "OpenStax, Rice University",
+      "type": "openstax-git",
+      "repo": "https://github.com/openstax/osbooks-college-algebra-bundle.git",
+      "commit": "463991614337632b0e02cbb6c76223cbb0d423d3",
+      "collection": "collections/algebra-and-trigonometry-2e.collection.xml",
+      "license": "CC BY-NC-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "bookUrl": "https://openstax.org/details/books/algebra-and-trigonometry-2e",
+      "pagesUrl": "https://openstax.org/books/algebra-and-trigonometry-2e/pages/",
+      "evalOnly": false
+    },
+    {
+      "id": "lucid-english-notes",
+      "title": "Lucid English Notes",
+      "authors": "the Lucid contributors",
+      "publisher": "Lucid",
+      "type": "markdown",
+      "repo": "",
+      "commit": "",
+      "collection": "",
+      "dir": "content/english",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "bookUrl": "https://github.com/Mckenly09/lucid-packs",
+      "pagesUrl": "",
+      "evalOnly": false
+    },
+    {
+      "id": "gov-earth-science",
+      "title": "Earth science pages",
+      "authors": "the U.S. Geological Survey (USGS), NOAA's National Weather Service (JetStream), NASA, DOST-PHIVOLCS and DOST-PAGASA",
+      "publisher": "Government agencies",
+      "type": "web",
+      "repo": "",
+      "commit": "",
+      "collection": "",
+      "license": "Public domain (US Government) and Philippine Government works",
+      "licenseUrl": "",
+      "bookUrl": "https://github.com/Mckenly09/lucid-packs#science-earth",
+      "pagesUrl": "",
+      "evalOnly": false,
+      "retrieved": "2026-10-28",
+      "pages": [
+        {
+          "url": "https://www.noaa.gov/jetstream/atmosphere/layers-of-atmosphere",
+          "topic": "sci7-atmosphere",
+          "license": "Public domain (US Government)",
+          "sha256": "97b48fe91e8423554ddf722e3970bee87ee27bf8177e236ddd3ac9d55ebb5680"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/atmosphere/air-pressure",
+          "topic": "sci7-atmosphere",
+          "license": "Public domain (US Government)",
+          "end": "Learning Lesson:",
+          "sha256": "688fdebb2ab2f3dfb0e9a2acd76960256cdcc7e7f6ede1e636c326fdd3dd74c7"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/atmosphere/transfer-of-heat-energy",
+          "topic": "sci7-atmosphere",
+          "license": "Public domain (US Government)",
+          "sha256": "00e2c5e8cf9e95afee78b2ac878603a148352bd4d90da4c6489922095957f5dd"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/global/global-atmospheric-circulations",
+          "topic": "sci7-atmosphere",
+          "license": "Public domain (US Government)",
+          "sha256": "2fc94ab860d703eb3a16a05722394de9698e421205035082aa20d041927fa82d"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/tropical/convergence-zone",
+          "topic": "sci7-atmosphere",
+          "license": "Public domain (US Government)",
+          "sha256": "b021c1a4ce3ed4fe61f08d8551e41ff1e2ceaa641a566e8866aa5b9ca48585c2"
+        },
+        {
+          "url": "https://spaceplace.nasa.gov/seasons/en/",
+          "topic": "sci7-atmosphere",
+          "license": "Public domain (US Government)",
+          "end": "Related Resources for Educators",
+          "sha256": "a64f031201443597134209ed69d625284ccf8babdbe4185d0e4249a961bf79ac"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/earthq1/intro.html",
+          "topic": "sci8-earthquakes",
+          "license": "Public domain (US Government)",
+          "title": "Earthquakes: Introduction",
+          "sha256": "71b9b3e7782f4918a2513a6ff431a46ad6d590b807307fc3af0a732281a99bee"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/earthq1/how.html",
+          "topic": "sci8-earthquakes",
+          "license": "Public domain (US Government)",
+          "title": "How Earthquakes Happen",
+          "sha256": "6f61e55d011cb47f92655adfcc9db436a8f7e637ad86ba99f7ec4246eb9e90e8"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/earthq1/where.html",
+          "topic": "sci8-earthquakes",
+          "license": "Public domain (US Government)",
+          "title": "Where Earthquakes Occur",
+          "sha256": "e13d9dbfa728d4dd74b3ed926c0a088e122df5f32ce2daecb309da69cf454865"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/earthq1/measure.html",
+          "topic": "sci8-earthquakes",
+          "license": "Public domain (US Government)",
+          "title": "Measuring Earthquakes",
+          "sha256": "e02228ed9a31585840a15b9f58db250cde291df977db77ef02780aa7dc884fe1"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/earthq1/predict.html",
+          "topic": "sci8-earthquakes",
+          "license": "Public domain (US Government)",
+          "title": "Can Earthquakes Be Predicted?",
+          "sha256": "cf553d1046ac1eb1d23caa60eb9e17a9d93cd3b1b4752076d435f9e26d0c9ba4"
+        },
+        {
+          "url": "https://www.phivolcs.dost.gov.ph/introduction-to-earthquake/",
+          "topic": "sci8-earthquakes",
+          "license": "Philippine Government work",
+          "sha256": "c465030909fd6789ae9d513a92cd1125abd4a5c93ae1887bc1b6814257be3308"
+        },
+        {
+          "url": "https://www.phivolcs.dost.gov.ph/phivolcs-earthquake-intensity-scale-2/",
+          "topic": "sci8-earthquakes",
+          "license": "Philippine Government work",
+          "sha256": "11e6af15307aede02de14dc0a9a8901defc7798ca14c00b8c4fa0b99743b1051"
+        },
+        {
+          "url": "https://www.phivolcs.dost.gov.ph/introduction-to-tsunami/",
+          "topic": "sci8-earthquakes",
+          "license": "Philippine Government work",
+          "sha256": "381686e18d935e6bc41b8f7cc0a4f960015da1508af95b0eabe4b09b7dd7f8b0"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/tropical/tropical-cyclone-introduction",
+          "topic": "sci8-typhoons",
+          "license": "Public domain (US Government)",
+          "end": "Read about tropical cyclone myths",
+          "sha256": "cd51060775280edcffb06a778e0ec6f69e98c3c49137f77a463b4cd2b7b2b1e4"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/tropical/tropical-cyclone-introduction/tropical-cyclone-structure",
+          "topic": "sci8-typhoons",
+          "license": "Public domain (US Government)",
+          "sha256": "6d115fae1bef062b8269c9baf190539f5d6dd92e8d9ebbab94d5041a3d08f815"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/tropical/tropical-cyclone-introduction/tropical-cyclone-classification",
+          "topic": "sci8-typhoons",
+          "license": "Public domain (US Government)",
+          "end": "Category & Wind Speed",
+          "sha256": "1bda6a9da2ef18d93bcaad13cf2ac9712b3d0b6386831dfe8de2d11dda363d69"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/tc-hazards",
+          "topic": "sci8-typhoons",
+          "license": "Public domain (US Government)",
+          "end": "Hurricane Preparedness site",
+          "sha256": "34c056c80e078a4bb44ae233554c30a6ac6db5d560a34d0a09ae698246c99d8c"
+        },
+        {
+          "url": "https://www.pagasa.dost.gov.ph/information/about-tropical-cyclone",
+          "topic": "sci8-typhoons",
+          "license": "Philippine Government work",
+          "title": "About Tropical Cyclones (PAGASA)",
+          "end": "Monthly Tropical Cyclone Forecast",
+          "sha256": "d9d3effcb1419d5730e84f56ec5740bc3796805868563c28850b1acc5e2a7bfb"
+        },
+        {
+          "url": "https://www.pagasa.dost.gov.ph/learning-tools/tropical-cyclone-wind-signal",
+          "topic": "sci8-typhoons",
+          "license": "Philippine Government work",
+          "title": "Tropical Cyclone Wind Signals (PAGASA)",
+          "sha256": "6b4cd46f200cd09a3562f379d768ee76b2fd16eb37c51a4fd18a5e0e206b728b"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/volc/text.html",
+          "topic": "sci9-volcanoes",
+          "license": "Public domain (US Government)",
+          "start": "Volcanoes destroy and volcanoes create",
+          "sha256": "0149fd46769dca04ec6ed7a99ee8131fae94e7b13af0cb744b8fd290d38629be"
+        },
+        {
+          "url": "https://www.phivolcs.dost.gov.ph/introduction-to-volcanoes/",
+          "topic": "sci9-volcanoes",
+          "license": "Philippine Government work",
+          "sha256": "c2509a9915153f21d982585c7d870991955360dd0666282035c6e409e6162cbe"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/global/climate-vs-weather",
+          "topic": "sci9-climate",
+          "license": "Public domain (US Government)",
+          "sha256": "8b4a103b865576f1da0e463bc9fe99bde6d32884aef2ba12271050a7bab029c4"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/global/climate-zones",
+          "topic": "sci9-climate",
+          "license": "Public domain (US Government)",
+          "sha256": "590776ee393f60e4019db263795613e6d119727eb9b8ff01eb3e452f94145c1b"
+        },
+        {
+          "url": "https://www.noaa.gov/jetstream/tropical/enso",
+          "topic": "sci9-climate",
+          "license": "Public domain (US Government)",
+          "sha256": "3ec17f2b755b0d63098318eb393a72656e548a37f43f8a95917fc79729bcbdb5"
+        },
+        {
+          "url": "https://science.nasa.gov/climate-change/what-is-climate-change/",
+          "topic": "sci9-climate",
+          "license": "Public domain (US Government)",
+          "end": "Find Out More: A Guide",
+          "sha256": "d497661b730469ac48bc0d80ae4c102ad84ed852341de72d1777df1d9fc042df"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/dynamic/historical.html",
+          "topic": "sci10-plate-tectonics",
+          "license": "Public domain (US Government)",
+          "title": "Plate Tectonics: Historical Perspective",
+          "sha256": "8f098af60d488d0572ccbe4371effcf72fa605dcdc6dd74eec9e9776ea66b6af"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/dynamic/developing.html",
+          "topic": "sci10-plate-tectonics",
+          "license": "Public domain (US Government)",
+          "title": "Developing the Theory of Plate Tectonics",
+          "sha256": "4f4a0c8279eb7d20fc2007179a9afe9bd3e1b507797e70a362d922c905864e37"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/dynamic/understanding.html",
+          "topic": "sci10-plate-tectonics",
+          "license": "Public domain (US Government)",
+          "title": "Understanding Plate Motions",
+          "sha256": "d7f6a93351166a58b7e772c281ddb1f4f42cde7beccb765171d8f5d1d663d77e"
+        },
+        {
+          "url": "https://pubs.usgs.gov/gip/dynamic/hotspots.html",
+          "topic": "sci10-plate-tectonics",
+          "license": "Public domain (US Government)",
+          "title": "Hotspots",
+          "sha256": "2ed8f69e34ca7f7af9da1f8721bca27005884c3762cf753ff7701bfe50591415"
+        }
+      ]
     }
   ]
 }

@@ -164,6 +164,179 @@
         "mitosis",
         "natural selection"
       ]
+    },
+    {
+      "id": "math-algebra",
+      "name": "Math · Algebra",
+      "subject": "math",
+      "version": 1,
+      "source": "openstax-elementary-algebra-2e",
+      "topicMap": {
+        "m82452": "math7-numbers",
+        "m82454": "math7-numbers",
+        "m82455": "math7-numbers",
+        "m82456": "math7-numbers",
+        "m82457": "math7-numbers",
+        "m82458": "math7-numbers",
+        "m82459": "math7-numbers",
+        "m82460": "math7-numbers",
+        "m82461": "math7-measurement",
+        "m82453": "math7-algebraic-expressions",
+        "m82501": "math7-algebraic-expressions",
+        "m82504": "math7-algebraic-expressions",
+        "m82507": "math7-algebraic-expressions",
+        "m82509": "math7-algebraic-expressions",
+        "m82513": "math7-algebraic-expressions",
+        "m82514": "math7-algebraic-expressions",
+        "m82463": "math7-linear-equations",
+        "m82464": "math7-linear-equations",
+        "m82465": "math7-linear-equations",
+        "m82467": "math7-linear-equations",
+        "m82468": "math7-linear-equations",
+        "m82469": "math7-linear-equations",
+        "m82470": "math7-linear-equations",
+        "m82472": "math7-linear-equations",
+        "m82473": "math7-linear-equations",
+        "m82475": "math7-linear-equations",
+        "m82477": "math7-linear-equations",
+        "m82478": "math7-linear-equations",
+        "m82476": "math7-geometry",
+        "m82480": "math8-linear-two-variables",
+        "m82481": "math8-linear-two-variables",
+        "m82482": "math8-linear-two-variables",
+        "m82483": "math8-linear-two-variables",
+        "m82485": "math8-linear-two-variables",
+        "m82486": "math8-linear-two-variables",
+        "m82488": "math8-linear-two-variables",
+        "m82490": "math8-systems",
+        "m82494": "math8-systems",
+        "m82495": "math8-systems",
+        "m82497": "math8-systems",
+        "m82498": "math8-systems",
+        "m82499": "math8-systems",
+        "m82508": "math8-factoring",
+        "m82564": "math8-factoring",
+        "m82566": "math8-factoring",
+        "m82527": "math8-factoring",
+        "m82528": "math8-factoring",
+        "m82529": "math8-factoring",
+        "m82530": "math9-quadratic-equations",
+        "m82555": "math9-quadratic-equations",
+        "m82556": "math9-quadratic-equations",
+        "m82557": "math9-quadratic-equations",
+        "m82558": "math9-quadratic-equations",
+        "m82559": "math9-quadratic-functions",
+        "m82532": "math8-rational-expressions",
+        "m82533": "math8-rational-expressions",
+        "m82534": "math8-rational-expressions",
+        "m82535": "math8-rational-expressions",
+        "m82537": "math8-rational-expressions",
+        "m82538": "math8-rational-expressions",
+        "m82543": "math8-rational-expressions",
+        "m82539": "math9-similarity",
+        "m82560": "math9-variation",
+        "m82545": "math9-radicals",
+        "m82546": "math9-radicals",
+        "m82547": "math9-radicals",
+        "m82548": "math9-radicals",
+        "m82550": "math9-radicals",
+        "m82551": "math9-radicals",
+        "m82552": "math9-radicals",
+        "m82553": "math9-radicals"
+      },
+      "checks": [
+        "quadratic formula",
+        "factor trinomials",
+        "slope of a line"
+      ]
+    },
+    {
+      "id": "math-advanced",
+      "name": "Math · Functions, Sequences and Circles",
+      "subject": "math",
+      "version": 1,
+      "source": "openstax-intermediate-algebra-2e",
+      "topicMap": {
+        "m81373": "math8-functions",
+        "m81374": "math8-functions",
+        "m81404": "math9-quadratic-functions",
+        "m81405": "math9-quadratic-functions",
+        "m81406": "math9-quadratic-equations",
+        "m81386": "math10-polynomials",
+        "m81420": "math10-polynomials",
+        "m81452": "math10-circles-coordinates",
+        "m81417": "math10-sequences",
+        "m81418": "math10-sequences",
+        "m81419": "math10-sequences"
+      },
+      "checks": [
+        "arithmetic sequence",
+        "remainder theorem",
+        "equation of a circle"
+      ]
+    },
+    {
+      "id": "math-geometry",
+      "name": "Math · Geometry Basics",
+      "subject": "math",
+      "version": 1,
+      "source": "openstax-prealgebra-2e",
+      "topicMap": {
+        "m81326": "math7-geometry",
+        "m81332": "math7-geometry",
+        "m81327": "math7-geometry",
+        "m81328": "math7-geometry"
+      },
+      "checks": [
+        "Pythagorean theorem",
+        "area of a trapezoid",
+        "volume of a cylinder"
+      ]
+    },
+    {
+      "id": "math-trig-prob",
+      "name": "Math · Trigonometry and Probability",
+      "subject": "math",
+      "version": 1,
+      "source": "openstax-algebra-trigonometry-2e",
+      "topicMap": {
+        "m51283": "math9-trigonometry",
+        "m51284": "math9-trigonometry",
+        "m49404": "math9-trigonometry",
+        "m49405": "math9-trigonometry",
+        "m49448": "math10-counting",
+        "m49450": "math10-probability"
+      },
+      "checks": [
+        "law of sines",
+        "combinations",
+        "probability"
+      ]
+    },
+    {
+      "id": "english-notes",
+      "name": "English · Grammar, Reading and Writing",
+      "subject": "english",
+      "version": 1,
+      "source": "lucid-english-notes",
+      "checks": [
+        "subject-verb agreement",
+        "passive voice",
+        "logical fallacy"
+      ]
+    },
+    {
+      "id": "science-earth",
+      "name": "Science · Earth and Space",
+      "subject": "science",
+      "version": 1,
+      "source": "gov-earth-science",
+      "checks": [
+        "earthquake intensity scale",
+        "tropical cyclone wind signal",
+        "plate tectonics",
+        "seasons tilt"
+      ]
     }
   ]
 }
