@@ -14,7 +14,14 @@ import { load } from '@/llm/engine';
 import { modelById } from '@/llm/models';
 import { subject, type SubjectId } from '@/llm/subjects/config';
 import { EVAL_SETS } from '@/llm/subjects/eval/grade';
-import { type EvalResult, passRate, runEval } from '@/llm/subjects/eval/run';
+import { type EvalResult, passRate, runEval, speed } from '@/llm/subjects/eval/run';
+
+/** Outside the component: the React Compiler lint treats Date.now() in a component body as render-time. */
+async function msToRun(work: () => Promise<void>) {
+  const start = Date.now();
+  await work();
+  return Date.now() - start;
+}
 
 /** Dev-only: run the subject eval sets on the phone. Open with `adb shell am start -d lucid://dev/eval`. */
 export default function Eval() {
@@ -23,6 +30,8 @@ export default function Eval() {
   const [progress, setProgress] = useState('');
   const [results, setResults] = useState<Partial<Record<SubjectId, EvalResult[]>>>({});
   const [error, setError] = useState<string | null>(null);
+  /** How long the model took to load (0 when it was already loaded). */
+  const [loadMs, setLoadMs] = useState<number | null>(null);
   const run = useRef<ReturnType<typeof runEval> | null>(null);
 
   useEffect(() => () => run.current?.stop(), []);
@@ -36,7 +45,7 @@ export default function Eval() {
     setResults((r) => ({ ...r, [id]: [] }));
     try {
       setProgress('Loading model…');
-      await load(toPath(modelFile(modelById(installedId)).uri));
+      setLoadMs(await msToRun(() => load(toPath(modelFile(modelById(installedId)).uri))));
       run.current = runEval(id, (r, done, total) => {
         setProgress(`${done}/${total}`);
         setResults((all) => ({ ...all, [id]: [...(all[id] ?? []), r] }));
@@ -66,13 +75,20 @@ export default function Eval() {
             {error && (
               <Banner status="danger" message={error} icon={<Icon name="TriangleAlert" size={22} tone="danger" />} />
             )}
+            {loadMs !== null && (
+              <Text variant="small" tone="muted">
+                Model load: {(loadMs / 1000).toFixed(1)} s
+              </Text>
+            )}
             {subjects.map((id) => {
               const r = results[id] ?? [];
+              const s = speed(r);
               return (
                 <View key={id} className="flex-row items-center gap-3">
                   <Text className="flex-1">
                     {subject(id).short}: {r.length ? `${passRate(r)}% (${r.filter((x) => x.pass).length}/${r.length})` : '—'}
                     {running === id && progress ? ` · ${progress}` : ''}
+                    {s ? ` · 1st token ${(s.firstTokenMs / 1000).toFixed(1)} s · ${s.tokensPerSec} tok/s` : ''}
                   </Text>
                   {running === id ? (
                     <Button label="Stop" variant="secondary" size="sm" onPress={() => run.current?.stop()} />
