@@ -11,10 +11,13 @@ import { Icon, type IconName } from '@/components/icon';
 import { ListItem } from '@/components/list-item';
 import { formatSize } from '@/components/model-card';
 import { Screen } from '@/components/screen';
+import { Sheet } from '@/components/sheet';
 import { Text } from '@/components/text';
 import { AuthError } from '@/features/auth/types';
 import { accountLabel, Avatar } from '@/features/auth/components/AccountButton';
 import { useAuth } from '@/features/auth/useAuth';
+import { exportBackup, importBackup, pickBackup } from '@/features/backup/backup';
+import type { BackupData } from '@/features/backup/services/backup';
 import { cancelReminder, REMINDER_HOUR, scheduleReminder } from '@/features/flashcards/reminder';
 import { useModels } from '@/features/models/store';
 import { ChoiceSheet } from '@/features/settings/components/ChoiceSheet';
@@ -53,6 +56,10 @@ export default function Settings() {
   const [open, setOpen] = useState<Open>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [linking, setLinking] = useState(false);
+  const [backupBusy, setBackupBusy] = useState(false);
+  // A checked backup waiting for "Add to your data" — Import never writes without asking.
+  const [pending, setPending] = useState<BackupData | null>(null);
+  const [imported, setImported] = useState<string | null>(null);
   const isLocal = user?.isLocal === true;
   const label = accountLabel(user);
   const model = installedId ? modelById(installedId) : null;
@@ -83,6 +90,50 @@ export default function Settings() {
     }
   };
 
+  const runExport = async () => {
+    if (!user) return;
+    setNotice(null);
+    setImported(null);
+    setBackupBusy(true);
+    try {
+      await exportBackup(user.uid);
+    } catch {
+      setNotice("Couldn't make the backup file. Please try again.");
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const runPick = async () => {
+    setNotice(null);
+    setImported(null);
+    setBackupBusy(true);
+    try {
+      const picked = await pickBackup();
+      if (!picked) return;
+      if ('error' in picked) {
+        setNotice(picked.error === 'too-big' ? 'That file is too big to be a Lucid backup.' : "That file isn't a Lucid backup.");
+        return;
+      }
+      setPending(picked.data);
+    } catch {
+      setNotice("Couldn't read that file. Please try again.");
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const runImport = () => {
+    if (!user || !pending) return;
+    try {
+      importBackup(user.uid, pending);
+      setImported(`Added ${countLabel(pending)}.`);
+    } catch {
+      setNotice("Couldn't add the backup. Nothing was changed.");
+    }
+    setPending(null);
+  };
+
   return (
     <Screen scroll padded={false}>
       <Header title="Settings" />
@@ -104,6 +155,7 @@ export default function Settings() {
           )}
         </Card>
 
+        {imported && <Banner status="success" message={imported} icon={<Icon name="CircleCheck" size={22} tone="success" />} />}
         {notice && <Banner status="warning" message={notice} icon={<Icon name="TriangleAlert" size={22} tone="warning" />} />}
 
         <Group title="Study">
@@ -142,6 +194,11 @@ export default function Settings() {
             value={model ? `${formatSize(model.sizeBytes / MB)} used` : ''}
             onPress={() => router.navigate('/library')}
           />
+        </Group>
+
+        <Group title="Your data">
+          <Row icon="Download" label="Export my data" value={backupBusy ? 'Working…' : ''} onPress={backupBusy ? undefined : () => void runExport()} />
+          <Row icon="Upload" label="Import a backup" value={backupBusy ? 'Working…' : ''} onPress={backupBusy ? undefined : () => void runPick()} />
         </Group>
 
         <Group title="App">
@@ -190,6 +247,19 @@ export default function Settings() {
         onPick={(appearance) => settings.set({ appearance })}
         onClose={() => setOpen(null)}
       />
+      <Sheet visible={!!pending} onClose={() => setPending(null)} title="Add to your data?">
+        {pending && (
+          <View className="gap-4 pt-1">
+            <Text tone="muted">
+              {`This backup has ${countLabel(pending)}. They'll be added to what's already on this phone. Nothing is replaced.`}
+            </Text>
+            <View className="flex-row gap-2">
+              <Button label="Cancel" variant="secondary" onPress={() => setPending(null)} className="flex-1" />
+              <Button label="Add to your data" onPress={runImport} className="flex-1" />
+            </View>
+          </View>
+        )}
+      </Sheet>
       <SignOutSheet visible={open === 'signOut'} onClose={() => setOpen(null)} />
       <DeleteAccountSheet visible={open === 'delete'} onClose={() => setOpen(null)} />
     </Screen>
@@ -227,3 +297,7 @@ function Row({ icon, label, value, onPress }: { icon: IconName; label: string; v
     />
   );
 }
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const countLabel = (d: BackupData) =>
+  [plural(d.chats.length, 'chat'), plural(d.cards.length, 'card'), plural(d.quizResults.length, 'quiz score'), plural(d.userPacks.length, 'pack')].join(', ');
