@@ -149,14 +149,14 @@ export default function Library() {
 
             {/* A student has a handful of packs, so a plain list here; their notes use a FlatList (packs/[id]). */}
             <View>
-              <View className="mb-1 flex-row items-center justify-between">
+              <View className="mb-2 flex-row items-center justify-between">
                 <Text variant="label">My packs</Text>
                 <Button
                   label="New pack"
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
+                  icon={<Icon name="Plus" size={16} tone="primary" />}
                   onPress={() => setCreating({ name: '', subject: 'general' })}
-                  className="-mr-3"
                 />
               </View>
               {myPacks.length === 0 ? (

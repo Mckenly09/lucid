@@ -46,45 +46,46 @@ const wrap = (s: string) => (/^(\d+(\.\d+)?|\p{L})$/u.test(s) ? s : `(${s})`);
 function math(nodes: XmlNode[], tight = false): string {
   return nodes
     .map((n) => {
-      const tag = tagOf(n);
+      // Books write MathML as <m:mfrac> or, with a default namespace, plain <mfrac> (Contemporary Mathematics).
+      const tag = tagOf(n).replace(/^m:/, '');
       if (tag === '#text') return String(n['#text']);
       // Pretty-printed MathML (Physics) has whitespace between elements; base/exponent and numerator/denominator are
       // the element children, so whitespace-only text must not take their places.
       const c = kids(n).filter((x) => tagOf(x) !== '#text' || String(x['#text']).trim() !== '');
       const each = () => c.map((x) => math([x], tight));
       switch (tag) {
-        case 'm:mo': {
+        case 'mo': {
           const op = math(c, true).trim();
           return !tight && SPACED_OPS.has(op) ? ` ${op} ` : op;
         }
-        case 'm:mspace':
+        case 'mspace':
           return ' ';
-        case 'm:msup': {
+        case 'msup': {
           const [base, sup] = c.map((x) => math([x], true));
           return `${base}^${wrap(sup ?? '')}${tight ? '' : ' '}`;
         }
-        case 'm:msub': {
+        case 'msub': {
           const [base, sub] = each();
           return `${base}${sub ?? ''}`;
         }
-        case 'm:msubsup': {
+        case 'msubsup': {
           const [base, sub, sup] = c.map((x) => math([x], true));
           return `${base}${sub ?? ''}^${wrap(sup ?? '')}`;
         }
-        case 'm:mfrac': {
+        case 'mfrac': {
           const [num, den] = each();
           return `${wrap((num ?? '').trim())}/${wrap((den ?? '').trim())}${tight ? '' : ' '}`;
         }
-        case 'm:mroot': {
+        case 'mroot': {
           const [radicand, index] = each().map((s) => s.trim());
           return index === '3' ? `cbrt(${radicand})` : `nthRoot(${radicand}, ${index})`;
         }
-        case 'm:msqrt':
+        case 'msqrt':
           return `sqrt(${math(c).trim()})`;
-        case 'm:mtr':
+        case 'mtr':
           return `${each().join(' ').trim()}; `;
-        case 'm:mphantom':
-        case 'm:annotation':
+        case 'mphantom':
+        case 'annotation':
           return '';
         default:
           return math(c, tight);
@@ -100,7 +101,7 @@ function inline(nodes: XmlNode[]): string {
       const tag = tagOf(n);
       if (tag === '#text') return String(n['#text']);
       if (DROP_TAGS.has(tag)) return '';
-      if (tag === 'm:math') return math(kids(n));
+      if (tag === 'm:math' || tag === 'math') return math(kids(n));
       if (tag === 'sup') return `^${inline(kids(n))}`;
       if (tag === 'newline') return ' ';
       if (tag === 'item') return ` ${inline(kids(n))};`;
@@ -181,7 +182,8 @@ export function parseModule(id: string, xml: string): Module {
 export function parseCollection(xml: string): { title: string; licenseUrl: string; chapters: Chapter[] } {
   const root = find(parser.parse(xml) as XmlNode[], 'col:collection');
   if (!root) throw new Error('no <col:collection>');
-  const meta = find(kids(root), 'metadata');
+  // Newer books (Contemporary Mathematics) prefix it: <col:metadata>.
+  const meta = find(kids(root), 'metadata') ?? find(kids(root), 'col:metadata');
   const text = (n?: XmlNode) => (n ? clean(inline(kids(n))) : '');
   const chapters: Chapter[] = [];
   const walk = (nodes: XmlNode[], chapter: Chapter | null) => {

@@ -26,7 +26,9 @@ Format:
 2. Steps: one step per line, show the operation.
 3. Answer: the final answer on its own line.
 4. Check: plug the answer back in or estimate.
-Write math in plain text (x^2, sqrt(9), 3/4). Include units if the problem has them.`,
+Write math in plain text (x^2, sqrt(9), 3/4). Include units if the problem has them.
+The final answer must be numbers, not an expression like x = 5 - 2y.
+If given a verified solution, explain it and keep its numbers.`,
     temperature: 0.1,
     usesCalculator: true,
   },

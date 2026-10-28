@@ -1,5 +1,6 @@
 [
   { "q": "Solve 2x + 5 = 17", "mustInclude": ["x=6"], "mustNotInclude": [] },
+  { "q": "Solve the system: 2x + y = 7 and x - y = 2", "mustInclude": ["x=3", "y=1"], "mustNotInclude": ["x=5-2y"] },
   { "q": "1 + 1", "mustInclude": [["=2", "is2"]], "mustNotInclude": [] },
   { "q": "Solve 3x - 4 = 11", "mustInclude": ["x=5"], "mustNotInclude": [] },
   { "q": "Solve for x: 5x = 35", "mustInclude": ["x=7"], "mustNotInclude": [] },

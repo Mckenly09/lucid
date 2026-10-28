@@ -5,9 +5,19 @@ import { generate, isLoaded, load, unload } from './engine';
 // The runtime is native; this fake streams tokens until stopGeneration() ends the streams running at that moment.
 const mockDestroyed: string[] = [];
 const mockStreams: { stopped: boolean }[] = [];
+const mockSteps: string[] = [];
 
 jest.mock('react-native-nobodywho', () => ({
-  SamplerPresets: { temperature: () => ({}) },
+  SamplerPresets: { constrainWithJsonSchema: () => ({}) },
+  // Fluent builder: every step records its name and returns itself, dist() ends the chain.
+  SamplerBuilder: jest.fn().mockImplementation(function (this: Record<string, unknown>) {
+    for (const step of ['penalties', 'dry', 'topK', 'topP', 'minP', 'temperature'])
+      this[step] = () => {
+        mockSteps.push(step);
+        return this;
+      };
+    this.dist = () => ({});
+  }),
   Model: {
     load: jest.fn(async ({ modelPath }: { modelPath: string }) => ({
       destroy: () => mockDestroyed.push(`model:${modelPath}`),
@@ -86,4 +96,31 @@ it('a new question stops the previous answer', async () => {
   const second = ask(2);
   await expect(second.done).resolves.toBe('t0 t1 ');
   expect((await first.done).length).toBeLessThan(10);
+});
+
+describe('sampler', () => {
+  const answer = (opts: { temperature?: number; jsonSchema?: object }) =>
+    generate({ system: 'sys', turns: [{ role: 'user', content: 'hi' }], onToken: () => {}, maxTokens: 1, ...opts }).done;
+
+  beforeEach(async () => {
+    await load('/a.gguf');
+    mockSteps.length = 0;
+  });
+
+  it('blocks repeats in language answers (the Filipino loop)', async () => {
+    await answer({ temperature: 0.4 });
+    expect(mockSteps).toEqual(expect.arrayContaining(['penalties', 'dry', 'temperature']));
+  });
+
+  it('lets math and science restate numbers but still blocks loops', async () => {
+    await answer({ temperature: 0.1 });
+    expect(mockSteps).toContain('temperature');
+    expect(mockSteps).not.toContain('penalties');
+    expect(mockSteps).toContain('dry');
+  });
+
+  it('Quiz me keeps the JSON-schema sampler', async () => {
+    await answer({ jsonSchema: { type: 'object' } });
+    expect(mockSteps).toEqual([]);
+  });
 });

@@ -1,5 +1,15 @@
 import type { Turn } from './engine';
-import { buildExplainPrompt, buildPrompt, estimateTokens, HISTORY_TURNS, NOTES_MAX_CHARS, SHARED_RULES, systemPrompt } from './prompts';
+import {
+  buildExplainPrompt,
+  buildPrompt,
+  canQuiz,
+  estimateTokens,
+  HISTORY_ANSWER_MAX_CHARS,
+  HISTORY_TURNS,
+  NOTES_MAX_CHARS,
+  SHARED_RULES,
+  systemPrompt,
+} from './prompts';
 import { SUBJECTS } from './subjects/config';
 
 describe('systemPrompt', () => {
@@ -32,12 +42,37 @@ describe('buildPrompt', () => {
     expect(p.turns[0].content).toBe(`m${10 - HISTORY_TURNS}`);
   });
 
+  it('shortens long past answers in history, never questions', () => {
+    const long = 'x'.repeat(2000);
+    const p = buildPrompt({
+      subjectId: 'general',
+      question: 'next',
+      history: [
+        { role: 'user', content: long },
+        { role: 'assistant', content: long },
+      ],
+    });
+    expect(p.turns[0].content).toBe(long);
+    expect(p.turns[1].content).toBe(`${'x'.repeat(HISTORY_ANSWER_MAX_CHARS)}…`);
+  });
+
   it('puts capped reference notes before the question', () => {
     const p = buildPrompt({ subjectId: 'social', question: 'Who?', notes: ['a'.repeat(5000)] });
     const content = p.turns[p.turns.length - 1].content;
     expect(content.startsWith('Reference notes:\n')).toBe(true);
     expect(content.endsWith('\n\nQuestion: Who?')).toBe(true);
     expect(content.length).toBeLessThan(NOTES_MAX_CHARS + 50);
+  });
+
+  it('gives math the solver steps for a system of equations, and other subjects nothing', () => {
+    const question = 'Solve 2x + y = 7 and x - y = 2';
+    const p = buildPrompt({ subjectId: 'math', question });
+    const content = p.turns[p.turns.length - 1].content;
+    expect(content).toMatch(/^Verified solution \(exact, from the calculator\):\n2x \+ y = 7\n/);
+    expect(content).toContain('Final answer:\nx = 3, y = 1\n\nQuestion: Solve');
+    expect(p.solution?.answer).toBe('x = 3, y = 1');
+    expect(buildPrompt({ subjectId: 'english', question }).solution).toBeUndefined();
+    expect(buildPrompt({ subjectId: 'math', question: 'Solve 2x + 5 = 17' }).solution).toBeUndefined();
   });
 });
 
@@ -64,4 +99,10 @@ it('adds the answer-language rule only when the student picked one', () => {
   expect(systemPrompt('math')).toBe(systemPrompt('math', 'same'));
   expect(buildPrompt({ subjectId: 'math', question: 'x', language: 'english' }).system).toMatch(/Always answer in English/);
   expect(estimateTokens(systemPrompt('filipino', 'filipino'))).toBeLessThan(250);
+});
+
+it('turns Quiz me off for answers under the word minimum', () => {
+  expect(canQuiz('')).toBe(false);
+  expect(canQuiz('Yes, that is right!')).toBe(false);
+  expect(canQuiz(Array(40).fill('word').join(' '))).toBe(true);
 });

@@ -1,5 +1,5 @@
-import { type ComponentRef, type Ref, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { type ComponentRef, type RefObject, useRef, useState } from 'react';
+import { Pressable, TextInput, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
 import { IconButton } from '@/components/icon-button';
@@ -11,12 +11,24 @@ type Props = {
   isGenerating?: boolean;
   placeholder?: string;
   disabled?: boolean;
-  inputRef?: Ref<ComponentRef<typeof TextInput>>;
+  inputRef?: RefObject<ComponentRef<typeof TextInput> | null>;
+  /** Starts the box with this text, focused (Edit question). Change the Composer's `key` to fill it again. */
+  initialText?: string;
 };
 
-export function Composer({ onSend, onStop, isGenerating, placeholder = 'Ask anything…', disabled, inputRef }: Props) {
-  const [text, setText] = useState('');
+export function Composer({
+  onSend,
+  onStop,
+  isGenerating,
+  placeholder = 'Ask anything…',
+  disabled,
+  inputRef,
+  initialText = '',
+}: Props) {
+  const [text, setText] = useState(initialText);
   const placeholderColor = useColor('default');
+  const own = useRef<ComponentRef<typeof TextInput>>(null);
+  const input = inputRef ?? own;
   const send = () => {
     const q = text.trim();
     if (!q) return;
@@ -26,18 +38,25 @@ export function Composer({ onSend, onStop, isGenerating, placeholder = 'Ask anyt
 
   return (
     <View className="flex-row items-end gap-2 border-t border-ink/10 bg-paper px-4 py-3">
-      <TextInput
-        ref={inputRef}
-        value={text}
-        onChangeText={setText}
-        placeholder={placeholder}
-        placeholderTextColor={placeholderColor}
-        multiline
-        textAlignVertical="center"
-        editable={!disabled}
-        accessibilityLabel="Your question"
-        className="max-h-32 min-h-12 flex-1 rounded-full border border-ink/10 bg-ink/5 px-6 py-3 font-sans text-body text-ink"
-      />
+      {/* Padding lives on the wrapper so typed text clears the rounded edge; tapping the padding still focuses the input. */}
+      <Pressable
+        onPress={() => input.current?.focus()}
+        accessible={false}
+        className="min-h-12 flex-1 justify-center rounded-full border border-ink/10 bg-ink/5 px-6">
+        <TextInput
+          ref={input}
+          value={text}
+          onChangeText={setText}
+          placeholder={placeholder}
+          placeholderTextColor={placeholderColor}
+          multiline
+          textAlignVertical="center"
+          editable={!disabled}
+          autoFocus={!!initialText}
+          accessibilityLabel="Your question"
+          className="max-h-32 py-3 font-sans text-body text-ink"
+        />
+      </Pressable>
       {isGenerating ? (
         <IconButton
           variant="filled"

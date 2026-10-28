@@ -71,7 +71,7 @@ export default function Settings() {
       await cancelReminder();
       return;
     }
-    if (await scheduleReminder()) settings.set({ reminder: true });
+    if (user && (await scheduleReminder(user.uid))) settings.set({ reminder: true });
     else setNotice('Allow notifications for Lucid in your phone settings to get card reminders.');
   };
 

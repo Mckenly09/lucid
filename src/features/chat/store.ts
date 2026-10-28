@@ -7,6 +7,7 @@ import { useSettings } from '@/features/settings/store';
 import * as engine from '@/llm/engine';
 import { buildExplainPrompt, buildPrompt, EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
 import { checkArithmetic } from '@/llm/subjects/calculator';
+import { statesSolution } from '@/llm/subjects/linear';
 import { subject, type SubjectId } from '@/llm/subjects/config';
 
 /** `sources`: the packs an answer's reference notes came from (source chips). */
@@ -33,6 +34,8 @@ type State = {
   /** Re-sends the last question after an error. */
   retry: (chatId: string) => void;
   stop: () => void;
+  /** Starts loading the installed model in the background, so the first question doesn't wait for it. */
+  warmUp: () => void;
 };
 
 type Prompt = ReturnType<typeof buildPrompt> & { sources?: string[] };
@@ -46,6 +49,9 @@ function askPrompt(chat: Chat, question: string, history: Message[]): Prompt {
   const language = useSettings.getState().answerLanguage;
   return { ...buildPrompt({ subjectId: chat.subject, question, history: history.map(turn), notes, language }), sources };
 }
+
+/** Streamed tokens reach the screen in batches: one render per ~50 ms instead of one per token. */
+const FLUSH_MS = 50;
 
 let generation: engine.Generation | null = null;
 /** The prompt of the latest answer, so Retry re-sends exactly that (an explain prompt isn't its chip label). */
@@ -91,19 +97,36 @@ export const useChat = create<State>()((set, get) => {
 
     edit(chatId, (m) => [...m, { role: 'assistant', content: '', sources: prompt.sources?.length ? prompt.sources : undefined }]);
     set({ status: 'generating' });
+    let pending = '';
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const flush = () => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (pending) appendToAnswer(chatId, pending);
+      pending = '';
+    };
     try {
       generation = engine.generate({
         ...prompt,
-        onToken: (token) => appendToAnswer(chatId, token),
+        onToken: (token) => {
+          pending += token;
+          timer ??= setTimeout(flush, FLUSH_MS);
+        },
       });
       let text = await generation.done;
+      // Before the calculator replaces the text, so held-back tokens aren't appended after it.
+      flush();
       // Never trust the model's arithmetic (AGENTS.md): mark wrong results with the calculator's value.
       if (subject(chat.subject).usesCalculator) {
+        const before = text;
         const checked = checkArithmetic(text);
-        if (checked.wrong) {
-          text = checked.text;
-          edit(chatId, (m) => [...m.slice(0, -1), { ...m[m.length - 1], content: text }]);
+        if (checked.wrong) text = checked.text;
+        // The solver's values win over the model's; skipped after Stop, where the answer may not be written yet.
+        const finished = get().activeId === chatId;
+        if (prompt.solution && finished && !statesSolution(text, prompt.solution)) {
+          text += `\n\nCalculator check: ${prompt.solution.answer}`;
         }
+        if (text !== before) edit(chatId, (m) => [...m.slice(0, -1), { ...m[m.length - 1], content: text }]);
       }
       // Stopped answers are saved too, with what was written so far.
       if (text.trim()) save(chat, 'assistant', text, prompt.sources);
@@ -111,6 +134,7 @@ export const useChat = create<State>()((set, get) => {
     } catch {
       fail(chatId, 'generate');
     } finally {
+      flush();
       generation = null;
       dropEmptyAnswer(chatId);
     }
@@ -182,6 +206,12 @@ export const useChat = create<State>()((set, get) => {
     stop: () => {
       generation?.stop();
       set({ status: 'idle', activeId: null });
+    },
+
+    warmUp: () => {
+      const path = installedModelPath();
+      // A failed warm-up is silent: the question's own load retries and shows the error.
+      if (path && !engine.isLoaded(path)) engine.load(path).catch(() => {});
     },
   };
 });

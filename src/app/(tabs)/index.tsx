@@ -17,11 +17,9 @@ import { useChat } from '@/features/chat/store';
 import { SUGGESTIONS } from '@/features/demo-data';
 import { reviewMinutes, useDecks } from '@/features/flashcards/useCards';
 import { groupOf, timeLabel } from '@/features/history/services/when';
+import { usePacks } from '@/features/knowledge/store';
 import { useChats } from '@/features/history/useChats';
 import { subject, SUBJECTS, type SubjectId } from '@/llm/subjects/config';
-
-// Two rows of three for the subject grid.
-const SUBJECT_ROWS = [SUBJECTS.slice(0, 3), SUBJECTS.slice(3, 6)];
 
 function greeting(hour: number) {
   if (hour < 12) return 'Good morning';
@@ -34,6 +32,10 @@ export default function Home() {
   const firstName = user?.name?.split(' ')[0];
   const { due } = useDecks();
   const recent = useChats('', 2);
+  const installed = usePacks((s) => s.installed);
+  // One tile per subject that has a downloaded pack, in the app's subject order.
+  const packSubjects = SUBJECTS.filter((s) => Object.values(installed).some((p) => p.subject === s.id));
+  const subjectRows = Array.from({ length: Math.ceil(packSubjects.length / 3) }, (_, i) => packSubjects.slice(i * 3, i * 3 + 3));
 
   // Nothing asked or saved yet: the first-time Home (welcome, suggestions, how to study).
   const firstTime = recent.length === 0 && due === 0;
@@ -97,7 +99,7 @@ export default function Home() {
         <>
           <View className="mt-8 flex-row items-center justify-between">
             <Text variant="label">Continue</Text>
-            <Button label="See all" variant="ghost" size="sm" onPress={() => router.navigate('/history')} className="-mr-3" />
+            <Button label="See all" variant="secondary" size="sm" onPress={() => router.navigate('/history')} />
           </View>
           <View className="mt-2 gap-2">
             {recent.map((c) => (
@@ -162,18 +164,38 @@ export default function Home() {
         <View className="pb-6" />
       ) : (
         <>
-          <Text variant="label" className="mb-2 mt-8">
-            Subjects
-          </Text>
-          <View className="gap-2 pb-6">
-            {SUBJECT_ROWS.map((row) => (
-              <View key={row[0].id} className="flex-row gap-2">
-                {row.map((s) => (
-                  <SubjectTile key={s.id} code={s.code} name={s.short} onPress={() => openAsk({ subject: s.id, at: String(Date.now()) })} />
-                ))}
-              </View>
-            ))}
+          <View className="mb-2 mt-8 flex-row items-center justify-between">
+            <Text variant="label">Subjects</Text>
+            {packSubjects.length > 0 && (
+              <Button label="Get more" variant="secondary" size="sm" onPress={() => router.navigate('/library')} />
+            )}
           </View>
+          {packSubjects.length === 0 ? (
+            <Card
+              onPress={() => router.navigate('/library')}
+              accessibilityLabel="Download subject packs"
+              className="mb-6 flex-row items-center gap-3">
+              <Icon name="Download" size={22} tone="muted" />
+              <Text variant="small" tone="muted" className="flex-1">
+                Download a subject pack in Library to see your subjects here.
+              </Text>
+              <Icon name="ChevronRight" size={18} tone="muted" />
+            </Card>
+          ) : (
+            <View className="gap-2 pb-6">
+              {subjectRows.map((row) => (
+                <View key={row[0].id} className="flex-row gap-2">
+                  {row.map((s) => (
+                    <SubjectTile key={s.id} code={s.code} name={s.short} onPress={() => openAsk({ subject: s.id, at: String(Date.now()) })} />
+                  ))}
+                  {/* Keep tiles in a short last row the same width as full rows. */}
+                  {Array.from({ length: 3 - row.length }, (_, i) => (
+                    <View key={i} className="flex-1" />
+                  ))}
+                </View>
+              ))}
+            </View>
+          )}
         </>
       )}
     </Screen>
