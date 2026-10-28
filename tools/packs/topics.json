@@ -1,5 +1,5 @@
 {
-  "_note": "Topic names from the DepEd K-12 Science curriculum guide (topic names only, no module text). Proposed by the agent; the developer reviews them (docs/packs.md).",
+  "_note": "Topic names from the DepEd K-12 Science, Math and English curriculum guides (topic names only, no module text). Proposed by the agent from memory; the developer reviews them against the official guide / MATATAG (docs/packs.md, todo.md).",
   "science": {
     "7": [
       { "code": "sci7-substances-mixtures", "name": "Substances and mixtures" },
@@ -55,6 +55,71 @@
       { "code": "sci10-homeostasis", "name": "Reproduction and homeostasis" },
       { "code": "sci10-dna-protein", "name": "DNA, RNA and protein synthesis" },
       { "code": "sci10-evolution", "name": "Evolution" }
+    ]
+  },
+  "math": {
+    "7": [
+      { "code": "math7-numbers", "name": "Integers, fractions, decimals and real numbers" },
+      { "code": "math7-measurement", "name": "Measurement and unit conversion" },
+      { "code": "math7-algebraic-expressions", "name": "Algebraic expressions, exponents and polynomials" },
+      { "code": "math7-linear-equations", "name": "Linear equations and inequalities in one variable" },
+      { "code": "math7-geometry", "name": "Angles, triangles and polygons; perimeter, area and volume" }
+    ],
+    "8": [
+      { "code": "math8-factoring", "name": "Special products and factoring" },
+      { "code": "math8-rational-expressions", "name": "Rational algebraic expressions" },
+      { "code": "math8-linear-two-variables", "name": "Linear equations and inequalities in two variables" },
+      { "code": "math8-systems", "name": "Systems of linear equations" },
+      { "code": "math8-functions", "name": "Relations and functions" }
+    ],
+    "9": [
+      { "code": "math9-quadratic-equations", "name": "Quadratic equations and inequalities" },
+      { "code": "math9-quadratic-functions", "name": "Quadratic functions" },
+      { "code": "math9-variation", "name": "Variation" },
+      { "code": "math9-radicals", "name": "Exponents and radicals" },
+      { "code": "math9-similarity", "name": "Ratio, proportion and similarity" },
+      { "code": "math9-trigonometry", "name": "Trigonometry" }
+    ],
+    "10": [
+      { "code": "math10-sequences", "name": "Sequences and series" },
+      { "code": "math10-polynomials", "name": "Polynomial division, theorems and the binomial theorem" },
+      { "code": "math10-circles-coordinates", "name": "Distance, midpoint and circles on the coordinate plane" },
+      { "code": "math10-counting", "name": "Permutations and combinations" },
+      { "code": "math10-probability", "name": "Probability" }
+    ]
+  },
+  "english": {
+    "7": [
+      { "code": "eng7-nouns-pronouns", "name": "Nouns and pronouns" },
+      { "code": "eng7-verb-tenses", "name": "Verbs and the simple tenses" },
+      { "code": "eng7-subject-verb", "name": "Subject-verb agreement" },
+      { "code": "eng7-sentences", "name": "Kinds and structures of sentences" },
+      { "code": "eng7-context-clues", "name": "Context clues and word meaning" },
+      { "code": "eng7-story-elements", "name": "Elements of a story" }
+    ],
+    "8": [
+      { "code": "eng8-adjectives-adverbs", "name": "Adjectives, adverbs and degrees of comparison" },
+      { "code": "eng8-connectors", "name": "Conjunctions and transition words" },
+      { "code": "eng8-active-passive", "name": "Active and passive voice" },
+      { "code": "eng8-figures-of-speech", "name": "Figures of speech" },
+      { "code": "eng8-main-idea", "name": "Main idea, supporting details and summarizing" },
+      { "code": "eng8-paragraphs", "name": "Writing a paragraph" }
+    ],
+    "9": [
+      { "code": "eng9-perfect-tenses", "name": "Perfect and progressive tenses" },
+      { "code": "eng9-conditionals", "name": "Conditional sentences" },
+      { "code": "eng9-modals", "name": "Modal verbs" },
+      { "code": "eng9-reported-speech", "name": "Direct and reported speech" },
+      { "code": "eng9-fact-opinion", "name": "Fact, opinion and bias" },
+      { "code": "eng9-poetry-drama", "name": "Poetry and drama" }
+    ],
+    "10": [
+      { "code": "eng10-sentence-errors", "name": "Fragments, run-ons and parallel structure" },
+      { "code": "eng10-argument", "name": "Claims, evidence and argumentative writing" },
+      { "code": "eng10-fallacies", "name": "Logical fallacies" },
+      { "code": "eng10-research", "name": "Research: sources, paraphrasing and citing" },
+      { "code": "eng10-persuasive-speech", "name": "Persuasive speeches and rhetorical devices" },
+      { "code": "eng10-text-types", "name": "Text types and structures" }
     ]
   }
 }

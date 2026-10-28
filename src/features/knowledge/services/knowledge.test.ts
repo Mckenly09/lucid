@@ -11,6 +11,11 @@ describe('ftsQuery', () => {
     expect(ftsQuery('Ano ang pang-uri?')).toBe('"pang" OR "uri"');
   });
 
+  it('keeps two-letter terms like pH but drops two-letter filler words', () => {
+    expect(ftsQuery('What is pH?')).toBe('"ph"');
+    expect(ftsQuery('Ano ang pH ng tubig?')).toBe('"ph" OR "tubig"');
+  });
+
   it('returns null when nothing is left to search for', () => {
     expect(ftsQuery('1 + 1 = ?')).toBeNull();
     expect(ftsQuery('')).toBeNull();

@@ -8,12 +8,10 @@ import { useAuth } from '@/features/auth/useAuth';
 export function useChats(search = '', limit?: number) {
   const { user } = useAuth();
   const uid = user?.uid;
-  const [chats, setChats] = useState<ChatSummary[]>([]);
+  const read = useCallback(() => (uid ? listChats(uid, search.trim(), limit) : []), [uid, search, limit]);
+  // First read before the first frame so Home doesn't flash its first-time state; focus re-reads after.
+  const [chats, setChats] = useState<ChatSummary[]>(read);
 
-  useFocusEffect(
-    useCallback(() => {
-      setChats(uid ? listChats(uid, search.trim(), limit) : []);
-    }, [uid, search, limit]),
-  );
+  useFocusEffect(useCallback(() => setChats(read()), [read]));
   return chats;
 }

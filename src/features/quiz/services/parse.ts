@@ -6,7 +6,7 @@ const MIN_QUESTIONS = 3;
 const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 
 /** Fisher–Yates; `random` is injectable for tests. */
-function shuffle<T>(items: T[], random: () => number): T[] {
+export function shuffle<T>(items: T[], random: () => number = Math.random): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));

@@ -1,4 +1,4 @@
-import { checkLicense, licenseFromText, licenseFromUrl } from './license.ts';
+import { checkLicense, licenseFromHost, licenseFromText, licenseFromUrl, PH_GOV, US_GOV } from './license.ts';
 
 it('reads CC licenses from a LICENSE file and a license URL', () => {
   expect(licenseFromText('Attribution-NonCommercial-ShareAlike 4.0 International\n\n===')).toBe('CC BY-NC-SA 4.0');
@@ -23,4 +23,21 @@ it('stops on a mismatch, an unreadable license, or a NonCommercial license in a 
 
 it('never ships eval-only sources', () => {
   expect(() => checkLicense({ ...ok, evalOnly: true, found: ['CC BY-NC-SA 4.0'] })).toThrow(/eval-only/);
+});
+
+describe('government pages', () => {
+  it('passes only listed https government hosts', () => {
+    expect(licenseFromHost('https://pubs.usgs.gov/gip/volc/text.html')).toBe(US_GOV);
+    expect(licenseFromHost('https://www.pagasa.dost.gov.ph/learning-tools/x')).toBe(PH_GOV);
+    expect(licenseFromHost('http://pubs.usgs.gov/gip/volc/text.html')).toBeNull();
+    expect(licenseFromHost('https://pubs.usgs.gov.example.com/x')).toBeNull();
+    expect(licenseFromHost('https://www.rappler.com/weather')).toBeNull();
+  });
+
+  it('ships Philippine government works only while the app is non-commercial', () => {
+    const page = { found: [PH_GOV], declared: PH_GOV, evalOnly: false };
+    expect(() => checkLicense({ ...page, commercial: false })).not.toThrow();
+    expect(() => checkLicense({ ...page, commercial: true })).toThrow('APP_COMMERCIAL');
+    expect(() => checkLicense({ found: [US_GOV], declared: US_GOV, commercial: true, evalOnly: false })).not.toThrow();
+  });
 });

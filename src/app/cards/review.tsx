@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
@@ -8,12 +8,15 @@ import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
+import { IconButton } from '@/components/icon-button';
 import { ProgressBar } from '@/components/progress-bar';
 import { Screen } from '@/components/screen';
+import { Sheet } from '@/components/sheet';
 import { Text } from '@/components/text';
-import { countDueBetween, type FlashCard, listDueCards, saveReview } from '@/db/cards';
+import { countDueBetween, deleteCard, type FlashCard, listDueCards, saveReview } from '@/db/cards';
 import { useAuth } from '@/features/auth/useAuth';
 import { endOfDay, intervalLabel, type Rating, schedule } from '@/features/flashcards/services/schedule';
+import { shuffle } from '@/features/quiz/services/parse';
 import { subject } from '@/llm/subjects/config';
 
 const RATINGS: { rating: Rating; label: string; className: string; tone: 'danger' | 'warning' | 'primary' | 'success' }[] = [
@@ -29,8 +32,13 @@ const clock = () => Date.now();
 export default function Review() {
   const { user } = useAuth();
   const uid = user?.uid ?? '';
-  // Today's due cards, read once so ratings don't reshuffle the session.
-  const [queue, setQueue] = useState<FlashCard[]>(() => (uid ? listDueCards(uid, endOfDay(Date.now())) : []));
+  const params = useLocalSearchParams<{ shuffle?: string }>();
+  // Today's due cards, read once so ratings don't reorder the session.
+  const [queue, setQueue] = useState<FlashCard[]>(() => {
+    const due = uid ? listDueCards(uid, endOfDay(Date.now())) : [];
+    return params.shuffle ? shuffle(due) : due;
+  });
+  const [menuOpen, setMenuOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [ratings, setRatings] = useState<{ card: FlashCard; rating: Rating }[]>([]);
@@ -42,6 +50,29 @@ export default function Review() {
   const card = queue[index];
   const done = queue.length > 0 && !card;
 
+  const finish = (now: number) =>
+    setSummary({
+      minutes: Math.max(1, Math.round((now - startedAt) / 60_000)),
+      tomorrow: countDueBetween(uid, endOfDay(now), endOfDay(now, 1)),
+    });
+
+  const remove = () => {
+    setMenuOpen(false);
+    try {
+      deleteCard(uid, card.id);
+    } catch (e) {
+      console.warn('Could not delete card', e instanceof Error ? e.message : e);
+      return;
+    }
+    // The next card slides into this index.
+    setQueue(queue.filter((c) => c.id !== card.id));
+    setFlipped(false);
+    if (index === queue.length - 1) {
+      // Nothing rated this session: a "0 cards reviewed" summary would mislead, so just leave.
+      if (ratings.length > 0) finish(clock());
+      else router.back();
+    }
+  };
 
   const rate = (rating: Rating) => {
     const now = clock();
@@ -55,12 +86,7 @@ export default function Review() {
     setRatings([...ratings, { card, rating }]);
     setIndex(index + 1);
     setFlipped(false);
-    if (index + 1 === queue.length) {
-      setSummary({
-        minutes: Math.max(1, Math.round((now - startedAt) / 60_000)),
-        tomorrow: countDueBetween(uid, endOfDay(now), endOfDay(now, 1)),
-      });
-    }
+    if (index + 1 === queue.length) finish(now);
   };
 
   // "Review the N hard ones again": a second pass over this session's Again and Hard cards, with their new state.
@@ -191,8 +217,13 @@ export default function Review() {
       <ProgressBar value={index / queue.length} label={`Card ${index + 1} of ${queue.length}`} className="h-1" />
 
       <Card variant="outlined" className="my-4 flex-1 gap-4 p-6">
-        <View className="flex-row">
+        <View className="-my-2 -mr-3 flex-row items-center justify-between">
           <Badge label={s.short} />
+          <IconButton
+            icon={<Icon name="EllipsisVertical" size={20} tone="muted" />}
+            onPress={() => setMenuOpen(true)}
+            accessibilityLabel="Card options"
+          />
         </View>
         {flipped ? (
           <View className="flex-1 gap-4" accessibilityLiveRegion="polite">
@@ -223,6 +254,16 @@ export default function Review() {
               </Text>
             )}
       </Card>
+
+      <Sheet visible={menuOpen} onClose={() => setMenuOpen(false)} title="Delete this card?">
+        <Text tone="muted" numberOfLines={2}>
+          “{card.front}” will be removed from your {s.short} deck.
+        </Text>
+        <View className="mt-6 flex-row gap-3">
+          <Button label="Cancel" variant="secondary" size="lg" className="flex-1" onPress={() => setMenuOpen(false)} />
+          <Button label="Delete" variant="danger" size="lg" className="flex-1" onPress={remove} />
+        </View>
+      </Sheet>
     </Screen>
   );
 }

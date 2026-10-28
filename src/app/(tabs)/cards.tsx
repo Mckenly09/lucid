@@ -1,20 +1,38 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Icon } from '@/components/icon';
+import { IconButton } from '@/components/icon-button';
 import { SubjectCode } from '@/components/list-item';
 import { ProgressBar } from '@/components/progress-bar';
 import { Screen } from '@/components/screen';
+import { Sheet } from '@/components/sheet';
 import { Text } from '@/components/text';
-import type { Deck } from '@/db/cards';
+import { type Deck, deleteDeck } from '@/db/cards';
+import { useAuth } from '@/features/auth/useAuth';
 import { reviewMinutes, useDecks } from '@/features/flashcards/useCards';
 import { subject } from '@/llm/subjects/config';
 
 export default function Cards() {
-  const { decks, due, total } = useDecks();
+  const { user } = useAuth();
+  const { decks, due, total, refresh } = useDecks();
+  const [shuffled, setShuffled] = useState(false);
+  const [removing, setRemoving] = useState<Deck | null>(null);
+
+  const remove = () => {
+    if (!user || !removing) return;
+    try {
+      deleteDeck(user.uid, removing.subject);
+    } catch (e) {
+      console.warn('Could not delete deck', e instanceof Error ? e.message : e);
+    }
+    setRemoving(null);
+    refresh();
+  };
 
   if (total === 0) {
     return (
@@ -42,7 +60,7 @@ export default function Cards() {
       <FlatList
         data={decks}
         keyExtractor={(d) => d.subject}
-        renderItem={({ item }) => <DeckRow deck={item} />}
+        renderItem={({ item }) => <DeckRow deck={item} onMenu={() => setRemoving(item)} />}
         contentContainerClassName="px-4 pb-6"
         ListHeaderComponent={
           <View>
@@ -56,7 +74,19 @@ export default function Cards() {
             </View>
 
             <Card variant="outlined" className="mt-6 gap-4">
-              <Text variant="label">Today&apos;s review</Text>
+              <View className="min-h-11 flex-row items-center justify-between">
+                <Text variant="label">Today&apos;s review</Text>
+                {due > 0 && (
+                  <IconButton
+                    icon={<Icon name="Shuffle" size={20} tone={shuffled ? 'paper' : 'muted'} />}
+                    variant={shuffled ? 'filled' : 'plain'}
+                    onPress={() => setShuffled(!shuffled)}
+                    disabled={due < 2}
+                    accessibilityLabel={shuffled ? 'Shuffle on' : 'Shuffle off'}
+                    className="-my-2"
+                  />
+                )}
+              </View>
               {due > 0 ? (
                 <>
                   <View className="flex-row items-end gap-3">
@@ -70,7 +100,10 @@ export default function Cards() {
                   </View>
                   <View className="gap-2">
                     <ProgressBar
-                      value={dueDecks.map((d) => ({ value: d.due / due, status: 'primary' as const }))}
+                      value={dueDecks.map((d) => ({
+                        value: d.due / due,
+                        status: 'primary' as const,
+                      }))}
                       label={`${due} cards due`}
                     />
                     <Text variant="caption" tone="muted">
@@ -81,7 +114,12 @@ export default function Cards() {
                     label="Start review"
                     size="lg"
                     icon={<Icon name="Play" size={18} tone="paper" />}
-                    onPress={() => router.push('/cards/review')}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/cards/review',
+                        params: shuffled ? { shuffle: '1' } : {},
+                      })
+                    }
                   />
                 </>
               ) : (
@@ -100,37 +138,56 @@ export default function Cards() {
           </View>
         }
       />
+
+      <Sheet visible={!!removing} onClose={() => setRemoving(null)} title="Delete this deck?">
+        <Text tone="muted">
+          {removing &&
+            `All ${removing.total === 1 ? '1 card' : `${removing.total} cards`} in ${subject(removing.subject).short} will be removed from this phone.`}
+        </Text>
+        <View className="mt-6 flex-row gap-3">
+          <Button label="Cancel" variant="secondary" size="lg" className="flex-1" onPress={() => setRemoving(null)} />
+          <Button label="Delete" variant="danger" size="lg" className="flex-1" onPress={remove} />
+        </View>
+      </Sheet>
     </Screen>
   );
 }
 
-function DeckRow({ deck }: { deck: Deck }) {
+function DeckRow({ deck, onMenu }: { deck: Deck; onMenu: () => void }) {
   const s = subject(deck.subject);
   const allLearned = deck.learned === deck.total;
   return (
-    <View
-      accessible
-      accessibilityLabel={`${s.short}: ${deck.learned} of ${deck.total} learned, ${deck.due} due`}
-      className="min-h-11 flex-row items-center gap-3 border-b border-ink/10 py-3">
-      <SubjectCode code={s.code} />
-      <View className="flex-1 gap-2">
-        <View className="flex-row items-center justify-between gap-2">
-          <Text className="font-medium" numberOfLines={1}>
-            {s.short}
-          </Text>
-          <Text variant="caption" tone="muted">
-            {deck.learned} of {deck.total} learned
-          </Text>
+    <View className="min-h-11 flex-row items-center gap-1 border-b border-ink/10 py-3">
+      <View
+        accessible
+        accessibilityLabel={`${s.short}: ${deck.learned} of ${deck.total} learned, ${deck.due} due`}
+        className="flex-1 flex-row items-center gap-3">
+        <SubjectCode code={s.code} />
+        <View className="flex-1 gap-2">
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="font-medium" numberOfLines={1}>
+              {s.short}
+            </Text>
+            <Text variant="caption" tone="muted">
+              {deck.learned} of {deck.total} learned
+            </Text>
+          </View>
+          <ProgressBar value={deck.learned / deck.total} label={`${s.short} learned`} className="h-1" />
         </View>
-        <ProgressBar value={deck.learned / deck.total} label={`${s.short} learned`} className="h-1" />
+        {deck.due > 0 ? (
+          <View className="h-6 min-w-6 items-center justify-center rounded-full bg-ink/10 px-2">
+            <Text variant="caption">{deck.due}</Text>
+          </View>
+        ) : (
+          allLearned && <Icon name="Check" size={18} tone="success" />
+        )}
       </View>
-      {deck.due > 0 ? (
-        <View className="h-6 min-w-6 items-center justify-center rounded-full bg-ink/10 px-2">
-          <Text variant="caption">{deck.due}</Text>
-        </View>
-      ) : (
-        allLearned && <Icon name="Check" size={18} tone="success" />
-      )}
+      <IconButton
+        icon={<Icon name="EllipsisVertical" size={20} tone="muted" />}
+        onPress={onMenu}
+        accessibilityLabel={`${s.short} deck options`}
+        className="-mr-3"
+      />
     </View>
   );
 }

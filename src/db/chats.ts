@@ -50,6 +50,11 @@ export function saveMessage(
 }
 
 /** Newest first. `search` matches the question or the answer preview. */
+/** Follow-up questions use the new subject; earlier answers stay as they were. */
+export function setChatSubject(uid: string, id: string, subject: SubjectId) {
+  getDb().runSync('UPDATE chats SET subject = ? WHERE id = ? AND uid = ?', subject, id, uid);
+}
+
 export function listChats(uid: string, search = '', limit = 200): ChatSummary[] {
   const like = `%${search.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
   return getDb().getAllSync<ChatSummary>(

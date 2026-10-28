@@ -17,10 +17,12 @@ type Props = {
   icon?: ReactNode;
   /** Makes the badge a small action (Update, Retry). */
   onPress?: () => void;
+  /** Defaults to `label`; say what pressing does when the label alone doesn't. */
+  accessibilityLabel?: string;
   className?: string;
 };
 
-export function Badge({ label, status = 'default', icon, onPress, className = '' }: Props) {
+export function Badge({ label, status = 'default', icon, onPress, accessibilityLabel = label, className = '' }: Props) {
   const s = styles[status];
   const content = (
     <>
@@ -34,7 +36,7 @@ export function Badge({ label, status = 'default', icon, onPress, className = ''
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
       className={`${base} min-h-11 min-w-11 justify-center active:opacity-80`}>
       {content}
     </Pressable>

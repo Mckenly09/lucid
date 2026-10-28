@@ -3,11 +3,10 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { ModelStatus } from '@/components/model-card';
-import * as engine from '@/llm/engine';
 import { storage } from '@/utils/kv-storage';
 import { type Model, type ModelId, modelById } from '@/llm/models';
 
-import { modelFile, modelsDir, partFile, verify } from './services/files';
+import { modelFile, modelsDir, partFile, toPath, verify } from './services/files';
 
 type Models = {
   /** Verified model on disk. */
@@ -56,9 +55,9 @@ export const useModels = create<Models>()(
           if (final.exists) final.delete();
           part.move(final);
           // Switching in Settings: the new model replaces the old one, so a small phone never holds two.
+          // No unload: an answer mid-stream keeps its mapped file; the next question loads the new path.
           const prev = get().installedId;
           if (prev && prev !== model.id) {
-            engine.unload();
             const old = modelFile(modelById(prev));
             if (old.exists) old.delete();
           }
@@ -124,3 +123,9 @@ export const useModels = create<Models>()(
     },
   ),
 );
+
+/** Path of the verified model to pass to the engine, or null when none is installed. */
+export function installedModelPath() {
+  const id = useModels.getState().installedId;
+  return id ? toPath(modelFile(modelById(id)).uri) : null;
+}

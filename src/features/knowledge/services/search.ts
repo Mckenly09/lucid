@@ -5,7 +5,8 @@ const STOP = new Set(
   (
     'the and for are but not you your with this that what when where which who whom why how was were has have had ' +
     'does did can could should would will from into about than then them they their there these those its our out ' +
-    'ano ang mga ng sa na at ay ito iyan iyon para kung bakit paano saan sino kailan din rin lang naman nga po ba si'
+    'ano ang mga ng sa na at ay ito iyan iyon para kung bakit paano saan sino kailan din rin lang naman nga po ba si ' +
+    'is of in on to an as or be it do if my me we us by so no ni'
   ).split(' '),
 );
 const MAX_TERMS = 8;
@@ -19,7 +20,7 @@ export function ftsQuery(question: string): string | null {
     .toLowerCase()
     .normalize('NFKC')
     .match(/[\p{L}\p{N}]+/gu);
-  const terms = [...new Set((words ?? []).filter((w) => w.length >= 3 && !STOP.has(w)))].slice(0, MAX_TERMS);
+  const terms = [...new Set((words ?? []).filter((w) => w.length >= 2 && !STOP.has(w)))].slice(0, MAX_TERMS);
   return terms.length ? terms.map((t) => `"${t}"`).join(' OR ') : null;
 }
 

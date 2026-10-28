@@ -30,14 +30,19 @@ const DROP_CLASSES = new RegExp(
     'short-answer', 'critical-thinking', 'extended-response', 'free-response', 'multiple-choice', 'concept',
     'check-understanding', 'practice-problems', 'problems', 'performance', 'review', 'watch-physics', 'snap-lab',
     'virtual-physics', 'interactive', 'visual-connection', 'visual-exercise', 'art-exercise', 'ap-[\\w-]+', 'career',
-    'keyterms', 'References', 'sr-contrib-auth',
+    'keyterms', 'References', 'sr-contrib-auth', 'be-prepared',
   ].join('|')})\\b`,
 );
 const SPACED_OPS = new Set(['=', '+', '−', '-', '×', '⟶', '→', '⇌', '<', '>', '≤', '≥', '≈']);
 
-const wrap = (s: string) => (/^[\w.]+$/.test(s) ? s : `(${s})`);
+// One number or one letter stands alone; anything longer gets brackets, so /(2a) and ^(2n) can't be misread.
+const wrap = (s: string) => (/^(\d+(\.\d+)?|\p{L})$/u.test(s) ? s : `(${s})`);
 
-/** MathML → plain text the model reads well: x^2, sqrt(9), 3/4 (docs/packs.md). Subscripts stay inline (H2O). */
+/**
+ * MathML → plain text the model reads well: x^2, sqrt(9), cbrt(8), nthRoot(x, 4), 3/4 (docs/packs.md; root names as in
+ * mathjs). Subscripts stay inline (H2O). Outside an exponent, a power or fraction ends with a space so what follows
+ * isn't read as part of it: a^m b^m, 1/2 mv^2.
+ */
 function math(nodes: XmlNode[], tight = false): string {
   return nodes
     .map((n) => {
@@ -56,7 +61,7 @@ function math(nodes: XmlNode[], tight = false): string {
           return ' ';
         case 'm:msup': {
           const [base, sup] = c.map((x) => math([x], true));
-          return `${base}^${wrap(sup ?? '')}`;
+          return `${base}^${wrap(sup ?? '')}${tight ? '' : ' '}`;
         }
         case 'm:msub': {
           const [base, sub] = each();
@@ -68,7 +73,11 @@ function math(nodes: XmlNode[], tight = false): string {
         }
         case 'm:mfrac': {
           const [num, den] = each();
-          return `${wrap((num ?? '').trim())}/${wrap((den ?? '').trim())}`;
+          return `${wrap((num ?? '').trim())}/${wrap((den ?? '').trim())}${tight ? '' : ' '}`;
+        }
+        case 'm:mroot': {
+          const [radicand, index] = each().map((s) => s.trim());
+          return index === '3' ? `cbrt(${radicand})` : `nthRoot(${radicand}, ${index})`;
         }
         case 'm:msqrt':
           return `sqrt(${math(c).trim()})`;
@@ -121,6 +130,9 @@ function blocks(nodes: XmlNode[], out: string[], inExample = false) {
     const tag = tagOf(n);
     if (tag === '#text' || DROP_TAGS.has(tag) || DROP_CLASSES.test(attr(n, 'class'))) continue;
     if (tag === 'exercise' && !inExample) continue;
+    // Math books draw worked solutions as images in a table: a problem whose solutions have no text is just noise.
+    const solutions = tag === 'exercise' ? kids(n).filter((x) => tagOf(x) === 'solution') : [];
+    if (solutions.length && !solutions.some((s) => hasText(kids(s)))) continue;
     if (tag === 'para' || tag === 'equation' || tag === 'title') {
       const text = clean(inline(kids(n)));
       if (text) out.push(tag === 'title' ? `${text}:` : text);
@@ -133,6 +145,13 @@ function blocks(nodes: XmlNode[], out: string[], inExample = false) {
       blocks(kids(n), out, inExample || isExample(n));
     }
   }
+}
+
+/** True when a block has prose besides its own title ("Solution:"). */
+function hasText(nodes: XmlNode[]) {
+  const out: string[] = [];
+  blocks(nodes.filter((x) => tagOf(x) !== 'title'), out, true);
+  return out.length > 0;
 }
 
 /** Sections in reading order; text before the first section belongs to the module title. Empty sections are dropped. */
