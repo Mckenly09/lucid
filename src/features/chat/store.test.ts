@@ -109,6 +109,21 @@ it('marks wrong arithmetic in math answers and saves the marked text', async () 
   expect(jest.mocked(saveMessage).mock.calls[1][3]).toBe('1 + 1 = 3 (calculator: 2)');
 });
 
+it('adds the solver answer when the model stops at a rearrangement (x = 5 - 2y)', async () => {
+  fakeAnswer(['Answer: ', 'x = 5 - 2y']);
+  const id = useChat.getState().newChat('u1', 'math');
+  await useChat.getState().ask(id, 'Solve 2x + y = 7 and x - y = 2');
+  expect(messages(id)[1].content).toBe('Answer: x = 5 - 2y\n\nCalculator check: x = 3, y = 1');
+  expect(jest.mocked(saveMessage).mock.calls[1][3]).toBe('Answer: x = 5 - 2y\n\nCalculator check: x = 3, y = 1');
+});
+
+it('adds nothing when the model states the solver values', async () => {
+  fakeAnswer(['Answer: x = 3, y = 1']);
+  const id = useChat.getState().newChat('u1', 'math');
+  await useChat.getState().ask(id, 'Solve 2x + y = 7 and x - y = 2');
+  expect(messages(id)[1].content).toBe('Answer: x = 3, y = 1');
+});
+
 it('leaves non-calculator subjects as written', async () => {
   fakeAnswer(['1 + 1 = 3']);
   const id = useChat.getState().newChat('u1', 'english');
@@ -225,4 +240,63 @@ it('Stop before the first word leaves no empty answer bubble', async () => {
   useChat.getState().stop();
   await pending;
   expect(messages(id)).toEqual([{ role: 'user', content: 'hi' }]);
+});
+
+describe('speed', () => {
+  it('warm-up loads the installed model once, and skips when loaded or not installed', () => {
+    useChat.getState().warmUp();
+    expect(mocked.load).toHaveBeenCalledWith('/doc/models/m.gguf');
+
+    mocked.load.mockClear();
+    mocked.isLoaded.mockReturnValue(true);
+    useChat.getState().warmUp();
+    jest.mocked(installedModelPath).mockReturnValue(null);
+    useChat.getState().warmUp();
+    expect(mocked.load).not.toHaveBeenCalled();
+  });
+
+  it('a failed warm-up stays silent', async () => {
+    mocked.load.mockRejectedValue(new Error('no memory'));
+    expect(() => useChat.getState().warmUp()).not.toThrow();
+    await Promise.resolve();
+  });
+
+  it('streams tokens to the screen in batches, with the full text at the end', async () => {
+    fakeAnswer(['The ', 'answer ', 'is ', 'six', '.']);
+    const id = useChat.getState().newChat('u1', 'general');
+    const shown: string[] = [];
+    const unsubscribe = useChat.subscribe((s) => {
+      const last = s.chats[id]?.messages.at(-1);
+      if (last?.role === 'assistant' && last.content && last.content !== shown.at(-1)) shown.push(last.content);
+    });
+    await useChat.getState().ask(id, 'What is 2 x 3?');
+    unsubscribe();
+
+    expect(shown).toEqual(['The answer is six.']);
+    expect(messages(id)[1].content).toBe('The answer is six.');
+  });
+
+  it('shows text while the answer is still being written', async () => {
+    jest.useFakeTimers();
+    let send: (t: string) => void = () => {};
+    let finish: () => void = () => {};
+    mocked.generate.mockImplementation(({ onToken }) => {
+      send = onToken;
+      return { stop: () => {}, done: new Promise<string>((resolve) => (finish = () => resolve('Halfway there'))) };
+    });
+    const id = useChat.getState().newChat('u1', 'general');
+    const asking = useChat.getState().ask(id, 'Long question');
+    await jest.advanceTimersByTimeAsync(0); // let the answer start
+
+    send('Halfway ');
+    expect(messages(id)[1].content).toBe(''); // held for the batch
+    jest.advanceTimersByTime(50);
+    expect(messages(id)[1].content).toBe('Halfway '); // on screen before the answer ends
+
+    send('there');
+    finish();
+    await asking;
+    expect(messages(id)[1].content).toBe('Halfway there');
+    jest.useRealTimers();
+  });
 });

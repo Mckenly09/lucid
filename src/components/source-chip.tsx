@@ -21,9 +21,10 @@ export function SourceChips({ sources, onPress }: Props) {
           accessibilityHint="Shows where this came from"
           // 28px chip + 8px each side = 44px touch target.
           hitSlop={8}
-          className="min-h-7 flex-row items-center gap-1 rounded-full border border-ink/10 px-2 active:bg-ink/5">
+          // shrink: a long source name wraps the chip to its own line and ends in "…" instead of running off screen.
+          className="min-h-7 shrink flex-row items-center gap-1 rounded-full border border-ink/10 px-2 active:bg-ink/5">
           <Icon name="Book" size={14} tone="muted" />
-          <Text variant="caption" numberOfLines={1}>
+          <Text variant="caption" numberOfLines={1} className="shrink">
             {s}
           </Text>
         </Pressable>

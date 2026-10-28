@@ -4,7 +4,7 @@ import * as engine from '@/llm/engine';
 import { makeQuiz } from './generate';
 
 // Never load a real model in tests (AGENTS.md).
-jest.mock('@/llm/engine', () => ({ load: jest.fn(), generate: jest.fn() }));
+jest.mock('@/llm/engine', () => ({ load: jest.fn(), generate: jest.fn(), countTokens: jest.fn() }));
 jest.mock('@/features/models/store', () => ({ installedModelPath: jest.fn() }));
 
 const mocked = jest.mocked(engine);
@@ -17,6 +17,7 @@ const replies = (...texts: string[]) =>
 beforeEach(() => {
   jest.resetAllMocks();
   mocked.load.mockResolvedValue();
+  mocked.countTokens.mockImplementation(async (t) => t.length);
   jest.mocked(installedModelPath).mockReturnValue('file:///m.gguf');
 });
 
@@ -47,11 +48,28 @@ it('does not retry after Stop', async () => {
   let finish: (t: string) => void = () => {};
   mocked.generate.mockReturnValueOnce({ stop, done: new Promise((r) => (finish = r)) });
   const run = makeQuiz('x');
-  await Promise.resolve(); // let the load resolve
-  await Promise.resolve();
+  await new Promise((r) => setTimeout(r, 0)); // let the load and token count resolve
   run.stop();
   finish('');
   expect(await run.done).toEqual({ error: 'stopped' });
   expect(stop).toHaveBeenCalled();
   expect(mocked.generate).toHaveBeenCalledTimes(1);
+});
+
+it('shortens a long answer until it fits the context', async () => {
+  replies(good);
+  await makeQuiz('a'.repeat(2000)).done;
+  const prompt = mocked.generate.mock.calls[0][0].turns[0].content;
+  expect(prompt.length).toBeLessThan(1200 + 100);
+  expect(prompt).toContain('a'.repeat(900));
+});
+
+it('reports each question as the model starts it', async () => {
+  const seen: number[] = [];
+  mocked.generate.mockImplementationOnce(({ onToken }) => {
+    ['{"questions":[{"question":"Q1"', ',{"question":"Q2"'].forEach(onToken);
+    return { stop: jest.fn(), done: Promise.resolve(good) };
+  });
+  await makeQuiz('Plants make food.', (n) => seen.push(n)).done;
+  expect(seen).toEqual([0, 1, 2]);
 });

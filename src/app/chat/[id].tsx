@@ -28,7 +28,7 @@ import { ChoiceSheet } from '@/features/settings/components/ChoiceSheet';
 import { type CardDraft, SaveCardSheet } from '@/features/flashcards/components/SaveCardSheet';
 import { shortenAnswer } from '@/features/flashcards/services/shorten';
 import { useModels } from '@/features/models/store';
-import { EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
+import { canQuiz, EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
 import { subject, SUBJECTS } from '@/llm/subjects/config';
 import { isFilipino } from '@/llm/subjects/detect';
 
@@ -64,6 +64,9 @@ export default function Chat() {
   const [savedAt, setSavedAt] = useState(-1);
   const [copiedAt, setCopiedAt] = useState(-1);
   const [pickingSubject, setPickingSubject] = useState(false);
+  // The question long-pressed (Copy / Edit sheet), and the text Edit put back in the input box.
+  const [question, setQuestion] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ text: string; at: number } | null>(null);
   const [source, setSource] = useState<ReturnType<typeof sourceDetails> | null>(null);
 
   // Chats from History or Home load from SQLite (a quick sync read, once per screen); a new one is already in memory.
@@ -104,6 +107,12 @@ export default function Chat() {
     AccessibilityInfo.announceForAccessibility('Answer copied');
   };
 
+  const copyQuestion = async (text: string) => {
+    setQuestion(null);
+    await Clipboard.setStringAsync(text);
+    AccessibilityInfo.announceForAccessibility('Question copied');
+  };
+
   const openSaveCard = () => {
     // The front is the student's own question, not an "Explain simpler" follow-up.
     const question =
@@ -117,6 +126,9 @@ export default function Chat() {
       padded={false}
       footer={
         <Composer
+          // A new key refills the box when Edit is tapped again.
+          key={editing?.at}
+          initialText={editing?.text}
           onSend={(q) => void ask(id, q)}
           onStop={stop}
           isGenerating={busy}
@@ -141,6 +153,7 @@ export default function Chat() {
             role={item.role}
             content={item.content}
             footer={item.sources?.length ? <SourceChips sources={item.sources} onPress={(s) => setSource(sourceDetails(s))} /> : undefined}
+            onLongPress={item.role === 'user' ? () => setQuestion(item.content) : undefined}
           />
         )}
         contentContainerClassName="gap-4 p-4"
@@ -199,6 +212,7 @@ export default function Chat() {
                   <Button
                     label="Quiz me"
                     icon={<Icon name="CircleHelp" size={20} tone="paper" />}
+                    disabled={!canQuiz(last.content)}
                     onPress={() => router.push({ pathname: '/quiz/[id]', params: { id } })}
                   />
                   <IconButton
@@ -213,6 +227,11 @@ export default function Chat() {
                     icon={<Icon name={saved ? 'BookmarkCheck' : 'Bookmark'} size={20} tone={saved ? 'success' : 'muted'} />}
                   />
                 </View>
+                {!canQuiz(last.content) && (
+                  <Text variant="small" tone="muted">
+                    Too short to quiz. Ask Lucid to explain more first.
+                  </Text>
+                )}
               </>
             )}
             <Disclaimer />
@@ -236,6 +255,34 @@ export default function Chat() {
         onPick={(s) => setSubject(id, s)}
         onClose={() => setPickingSubject(false)}
       />
+      <Sheet visible={!!question} onClose={() => setQuestion(null)} title="Your question">
+        {question && (
+          <View className="gap-3 pt-1">
+            <Text tone="muted" numberOfLines={3}>
+              {question}
+            </Text>
+            <Button
+              label="Copy question"
+              variant="secondary"
+              size="lg"
+              icon={<Icon name="Copy" size={20} tone="primary" />}
+              onPress={() => void copyQuestion(question)}
+            />
+            {/* Edit sends as a new follow-up; earlier answers stay. */}
+            <Button
+              label="Edit question"
+              variant="secondary"
+              size="lg"
+              icon={<Icon name="Pencil" size={20} tone="primary" />}
+              disabled={busy}
+              onPress={() => {
+                setEditing({ text: question, at: Date.now() });
+                setQuestion(null);
+              }}
+            />
+          </View>
+        )}
+      </Sheet>
       {/* packs.md §4: a chip opens the note's title and the pack's license and attribution. */}
       <Sheet visible={!!source} onClose={() => setSource(null)} title={source?.title}>
         {source && (

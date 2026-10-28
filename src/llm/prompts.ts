@@ -1,5 +1,6 @@
 import type { Turn } from './engine';
 import { subject, type SubjectId } from './subjects/config';
+import { solveLinearSystem } from './subjects/linear';
 
 // Copied from docs/subjects.md "Shared rules"; edit it there first.
 export const SHARED_RULES = `You are Lucid, a patient high school tutor. You run offline on the student's phone.
@@ -12,6 +13,11 @@ export const SHARED_RULES = `You are Lucid, a patient high school tutor. You run
 
 /** Earlier messages kept (2 = the last question and answer); small models drift with long history. */
 export const HISTORY_TURNS = 4;
+/**
+ * Past answers kept in history are cut to this (~150 tokens). The runtime re-reads the whole history before each
+ * new answer, so full-length answers made follow-ups slow on low-end phones; the start is enough for context.
+ */
+export const HISTORY_ANSWER_MAX_CHARS = 600;
 /** ~400 tokens of reference notes at ~4 characters per token (subjects.md). */
 export const NOTES_MAX_CHARS = 1600;
 
@@ -66,10 +72,22 @@ export function buildPrompt(opts: {
   const s = subject(opts.subjectId);
   const notes = (opts.notes ?? []).join('\n\n').slice(0, NOTES_MAX_CHARS).trim();
   const question = opts.question.trim();
-  const content = notes ? `Reference notes:\n${notes}\n\nQuestion: ${question}` : question;
+  // The solver does the algebra; the model only explains it (subjects.md "Equation solver").
+  const solution = s.usesCalculator ? solveLinearSystem(question) : null;
+  const verified = solution ? `Verified solution (exact, from the calculator):\n${solution.steps}` : '';
+  const context = [notes && `Reference notes:\n${notes}`, verified].filter(Boolean).join('\n\n');
+  const content = context ? `${context}\n\nQuestion: ${question}` : question;
   return {
+    ...(solution && { solution }),
     system: systemPrompt(s.id, opts.language),
-    turns: [...(opts.history ?? []).slice(-HISTORY_TURNS), { role: 'user', content } satisfies Turn],
+    turns: [
+      ...(opts.history ?? []).slice(-HISTORY_TURNS).map((t) =>
+        t.role === 'assistant' && t.content.length > HISTORY_ANSWER_MAX_CHARS
+          ? { ...t, content: `${t.content.slice(0, HISTORY_ANSWER_MAX_CHARS).trimEnd()}…` }
+          : t,
+      ),
+      { role: 'user', content } satisfies Turn,
+    ],
     temperature: s.temperature,
   };
 }
@@ -82,8 +100,15 @@ const QUIZ_RULES = `You write multiple-choice quiz questions for a high school s
 - "why" is one short sentence explaining the correct answer.
 - Reply with JSON only.`;
 
-/** Answers longer than this are cut so the prompt fits the 2048-token context with room for the quiz. */
+/** A first, cheap cut on very long answers; QUIZ_ANSWER_MAX_TOKENS is the real fit. */
 export const QUIZ_ANSWER_MAX_CHARS = 2400;
+/** 2048-token context = ~150 rules and template + this answer + 600 for the quiz JSON. Filipino and math take more tokens per character, so chars alone overflow. */
+export const QUIZ_ANSWER_MAX_TOKENS = 1100;
+/** Questions asked for; the loading screen counts progress against it. */
+export const QUIZ_COUNT = 3;
+/** Shorter answers rarely hold 3 facts to ask about, so the quiz is turned off instead of failing after ~10 s. */
+export const QUIZ_MIN_WORDS = 40;
+export const canQuiz = (answer: string) => answer.trim().split(/\s+/).length >= QUIZ_MIN_WORDS;
 
 /** The model returns the right answer and the wrong ones apart; code shuffles them, so "exactly one correct" holds by shape. */
 export const QUIZ_SCHEMA = {
@@ -112,6 +137,6 @@ export const QUIZ_SCHEMA = {
 
 /** Quiz me: 3 questions (the schema allows up to 5) to stay near the ~10 s target. Built from the answer text only, so questions stay on what the student just learned (roadmap v1). */
 export function buildQuizPrompt(answer: string) {
-  const content = `Explanation:\n${answer.trim().slice(0, QUIZ_ANSWER_MAX_CHARS)}\n\nWrite 3 short questions about this explanation.`;
+  const content = `Explanation:\n${answer.trim().slice(0, QUIZ_ANSWER_MAX_CHARS)}\n\nWrite ${QUIZ_COUNT} short questions about this explanation.`;
   return { system: QUIZ_RULES, turns: [{ role: 'user', content } satisfies Turn], jsonSchema: QUIZ_SCHEMA, maxTokens: 600 };
 }

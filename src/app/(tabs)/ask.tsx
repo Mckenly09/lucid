@@ -1,5 +1,5 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { type ComponentRef, useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'react';
 import { type TextInput, View } from 'react-native';
 
 import { Card } from '@/components/card';
@@ -47,6 +47,8 @@ export default function Ask() {
   useEffect(() => {
     if (params.focus) input.current?.focus();
   }, [params.focus]);
+  // Load the model while the student types, so the answer doesn't start with a wait (after the UI shows: AGENTS.md cold start).
+  useFocusEffect(useCallback(() => useChat.getState().warmUp(), []));
   const ask = (q: string) => {
     if (!user) return; // the tabs only render signed in
     const { newChat, ask: send } = useChat.getState();
