@@ -1,4 +1,4 @@
-import { type Href, router } from 'expo-router';
+import { router } from 'expo-router';
 import { Image, Pressable, View } from 'react-native';
 
 import { Text } from '@/components/text';
@@ -12,8 +12,7 @@ export function AccountButton() {
   const label = accountLabel(user);
   return (
     <Pressable
-      // The typed-routes file lists settings/index.tsx as `/settings/index`; at runtime it is `/settings`.
-      onPress={() => router.push('/settings' as Href)}
+      onPress={() => router.push('/settings')}
       accessibilityRole="button"
       accessibilityLabel={`Settings. Account: ${label}`}
       className="h-11 w-11 items-center justify-center rounded-full active:bg-ink/10">
