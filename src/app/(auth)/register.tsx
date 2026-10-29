@@ -10,6 +10,7 @@ import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
+import { TextLink } from '@/components/text-link';
 import { AUTH_ERRORS, type ShownAuthError, shownError } from '@/features/auth/errors';
 import { passwordChecks, passwordOk } from '@/features/auth/password';
 import { useAuth } from '@/features/auth/useAuth';
@@ -49,16 +50,9 @@ export default function Register() {
       scroll
       padded={false}
       footer={
-        <View className="items-center px-4 pb-6 pt-3">
-          <Text tone="muted" className="text-center">
-            Already have an account?{' '}
-            <Text
-              accessibilityRole="link"
-              onPress={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))}
-              className="font-semibold underline">
-              Log in
-            </Text>
-          </Text>
+        <View className="flex-row flex-wrap items-center justify-center gap-1 px-4 pb-6 pt-3">
+          <Text tone="muted">Already have an account?</Text>
+          <TextLink label="Log in" onPress={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))} />
         </View>
       }>
       <Header title="Create your account" />
