@@ -14,14 +14,16 @@ type Props = {
   back?: 'back' | 'close';
   right?: ReactNode;
   bordered?: boolean;
+  /** Replaces the default "go back" (e.g. back from the confirm-email screen signs out). */
+  onBack?: () => void;
 };
 
-export function Header({ title, subtle, back = 'back', right, bordered }: Props) {
+export function Header({ title, subtle, back = 'back', right, bordered, onBack }: Props) {
   return (
     <View className={`min-h-14 flex-row items-center gap-1 px-1 ${bordered ? 'border-b border-ink/10' : ''}`}>
       <IconButton
         accessibilityLabel={back === 'close' ? 'Close' : 'Go back'}
-        onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))}
         icon={
           back === 'close' ? (
             <Icon name="X" size={24} />

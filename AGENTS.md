@@ -17,7 +17,7 @@ Lucid is a React Native (Expo) app that lets students ask questions and get answ
 - Local storage: `expo-sqlite` (chats, messages, knowledge packs with FTS5), `expo-file-system` (model files)
 - State: Zustand
 - Styling: NativeWind (`className`) with tokens from the `@theme` block in `src/global.css` only (Tailwind v4: no `tailwind.config.js`) — see `docs/system-design.md`
-- Auth: Firebase Authentication (React Native Firebase, modular API) + Google Sign-In. The Firebase ID token is the JWT — see `docs/auth.md`
+- Auth: Firebase Authentication (React Native Firebase, modular API) + Google Sign-In + email/password. The Firebase ID token is the JWT — see `docs/auth.md`
 
 ## Setup
 
@@ -138,7 +138,7 @@ Full spec in `docs/auth.md`. The essentials:
 
 ## Don't
 
-- Don't add a backend or cloud sync unless explicitly asked. Login is Firebase + Google, plus the offline profile (`docs/auth.md` §5) — don't add other providers without asking.
+- Don't add a backend or cloud sync unless explicitly asked. Login is Firebase with Google or email/password, plus the offline profile (`docs/auth.md` §5) — don't add other providers without asking.
 - Don't send student questions or answers to Firebase or any server.
 - Don't import the LLM runtime outside `src/llm/`.
 - Don't bundle model files in the app binary.

@@ -134,10 +134,11 @@ function Cell({ element: e, selected, dim, onPress }: { element: Element; select
       accessibilityLabel={`${e.name}, ${e.symbol}, atomic number ${e.number}, ${CATEGORY_NAME[e.category]}`}
       accessibilityState={{ selected }}
       className={`h-11 w-10 items-center justify-center rounded-sm active:opacity-80 ${style.bg} ${selected ? 'border-2 border-ink' : `border ${style.border}`} ${dim ? 'opacity-30' : ''}`}>
-      <Text variant="caption" tone={style.tone} className="font-sans opacity-70">
+      {/* Fixed-size grid cells: scaled text would clip. The label above and the details card carry the scaled text. */}
+      <Text variant="caption" tone={style.tone} allowFontScaling={false} className="font-sans opacity-70">
         {e.number}
       </Text>
-      <Text variant="small" tone={style.tone} className="font-bold">
+      <Text variant="h3" tone={style.tone} allowFontScaling={false} className="font-bold">
         {e.symbol}
       </Text>
     </Pressable>
@@ -154,16 +155,16 @@ function Details({ element: e, onAsk }: { element: Element; onAsk: () => void })
   return (
     <Card variant="outlined" className="gap-3 p-4">
       <View className="flex-row items-center gap-3" accessible accessibilityLabel={`${e.name}, ${elementSummary(e)}`}>
-        <View className={`h-16 w-16 items-center justify-center rounded-md ${box(e.category)}`}>
+        <View className={`min-h-16 min-w-16 items-center justify-center rounded-md px-2 ${box(e.category)}`}>
           <Text variant="caption" tone={style.tone} className="font-sans">
             {e.number}
           </Text>
-          <Text variant="h1" tone={style.tone}>
+          <Text variant="display" tone={style.tone}>
             {e.symbol}
           </Text>
         </View>
         <View className="flex-1 gap-1">
-          <Text variant="h2" accessibilityRole="header">
+          <Text variant="h1" accessibilityRole="header">
             {e.name}
           </Text>
           <Text variant="small" tone="muted">
@@ -177,9 +178,7 @@ function Details({ element: e, onAsk }: { element: Element; onAsk: () => void })
             <Text variant="caption" tone="muted" className="font-sans">
               {f.label}
             </Text>
-            <Text variant="small" className="font-semibold">
-              {f.value}
-            </Text>
+            <Text className="font-semibold">{f.value}</Text>
           </View>
         ))}
       </View>

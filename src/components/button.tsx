@@ -17,6 +17,7 @@ const container = {
   primary: 'bg-primary active:bg-primary/90',
   secondary: 'bg-primary/10 active:bg-primary/20',
   ghost: 'bg-transparent active:bg-ink/5',
+  outline: 'border border-ink/20 bg-transparent active:bg-ink/5',
   danger: 'bg-danger active:bg-danger/90',
 } as const;
 
@@ -24,6 +25,7 @@ const label = {
   primary: 'text-paper',
   secondary: 'text-primary',
   ghost: 'text-primary underline',
+  outline: 'text-ink',
   danger: 'text-paper',
 } as const;
 
