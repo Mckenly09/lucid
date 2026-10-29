@@ -1,4 +1,5 @@
 import Markdown, { type ASTNode, type RenderRules } from 'react-native-markdown-display';
+import { memo } from 'react';
 import { Text as RNText, View } from 'react-native';
 
 import { Text } from '@/components/text';
@@ -131,6 +132,7 @@ function list(node: ASTNode, children: React.ReactNode[]) {
   );
 }
 
-export function MarkdownAnswer({ content }: { content: string }) {
+// Memo: while an answer streams the chat list re-renders ~20×/s; past answers must not re-parse their markdown each time.
+export const MarkdownAnswer = memo(function MarkdownAnswer({ content }: { content: string }) {
   return <Markdown rules={rules}>{content}</Markdown>;
-}
+});
