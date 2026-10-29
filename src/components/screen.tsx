@@ -24,7 +24,8 @@ export function Screen({ children, scroll, padded = true, edges = ['top', 'botto
   return (
     <KeyboardAvoidingView
       className="flex-1"
-      behavior="padding"
+      // Slides during the keyboard animation and pads once at the end; "padding" relaid the whole screen (chat list too) every frame.
+      behavior="translate-with-padding"
       automaticOffset
       enabled={footer !== undefined}
       // The keyboard already covers the bottom inset; don't pad for it twice.

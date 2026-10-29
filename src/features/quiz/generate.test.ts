@@ -61,7 +61,7 @@ it('shortens a long answer until it fits the context', async () => {
   await makeQuiz('a'.repeat(2000)).done;
   const prompt = mocked.generate.mock.calls[0][0].turns[0].content;
   expect(prompt.length).toBeLessThan(1200 + 100);
-  expect(prompt).toContain('a'.repeat(900));
+  expect(prompt).toContain('a'.repeat(800));
 });
 
 it('reports each question as the model starts it', async () => {

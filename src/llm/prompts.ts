@@ -102,10 +102,12 @@ const QUIZ_RULES = `You write multiple-choice quiz questions for a high school s
 
 /** A first, cheap cut on very long answers; QUIZ_ANSWER_MAX_TOKENS is the real fit. */
 export const QUIZ_ANSWER_MAX_CHARS = 2400;
-/** 2048-token context = ~150 rules and template + this answer + 600 for the quiz JSON. Filipino and math take more tokens per character, so chars alone overflow. */
-export const QUIZ_ANSWER_MAX_TOKENS = 1100;
-/** Questions asked for; the loading screen counts progress against it. */
-export const QUIZ_COUNT = 3;
+/** 2048-token context = ~150 rules and template + this answer + QUIZ_MAX_TOKENS. Filipino and math take more tokens per character, so chars alone overflow. */
+export const QUIZ_ANSWER_MAX_TOKENS = 950;
+/** Fits QUIZ_COUNT questions at their schema maxLength even in Filipino (~3 chars/token), so the JSON is never cut off. */
+const QUIZ_MAX_TOKENS = 850;
+/** Questions asked for; one more than the 3 shown at least, so one bad question doesn't fail the quiz. The loading screen counts against it. */
+export const QUIZ_COUNT = 4;
 /** Shorter answers rarely hold 3 facts to ask about, so the quiz is turned off instead of failing after ~10 s. */
 export const QUIZ_MIN_WORDS = 40;
 export const canQuiz = (answer: string) => answer.trim().split(/\s+/).length >= QUIZ_MIN_WORDS;
@@ -116,15 +118,16 @@ export const QUIZ_SCHEMA = {
   properties: {
     questions: {
       type: 'array',
-      minItems: 3,
-      maxItems: 5,
+      minItems: QUIZ_COUNT,
+      maxItems: QUIZ_COUNT,
       items: {
         type: 'object',
         properties: {
-          question: { type: 'string' },
-          answer: { type: 'string' },
-          wrong: { type: 'array', items: { type: 'string' }, minItems: 3, maxItems: 3 },
-          why: { type: 'string' },
+          // Length caps keep the whole quiz inside QUIZ_MAX_TOKENS.
+          question: { type: 'string', minLength: 1, maxLength: 140 },
+          answer: { type: 'string', minLength: 1, maxLength: 60 },
+          wrong: { type: 'array', items: { type: 'string', minLength: 1, maxLength: 60 }, minItems: 3, maxItems: 3 },
+          why: { type: 'string', maxLength: 140 },
         },
         required: ['question', 'answer', 'wrong', 'why'],
         additionalProperties: false,
@@ -135,8 +138,8 @@ export const QUIZ_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-/** Quiz me: 3 questions (the schema allows up to 5) to stay near the ~10 s target. Built from the answer text only, so questions stay on what the student just learned (roadmap v1). */
+/** Quiz me: QUIZ_COUNT questions, 3–4 survive the checks (roadmap: 3–5), near the ~10 s target. Built from the answer text only, so questions stay on what the student just learned (roadmap v1). */
 export function buildQuizPrompt(answer: string) {
   const content = `Explanation:\n${answer.trim().slice(0, QUIZ_ANSWER_MAX_CHARS)}\n\nWrite ${QUIZ_COUNT} short questions about this explanation.`;
-  return { system: QUIZ_RULES, turns: [{ role: 'user', content } satisfies Turn], jsonSchema: QUIZ_SCHEMA, maxTokens: 600 };
+  return { system: QUIZ_RULES, turns: [{ role: 'user', content } satisfies Turn], jsonSchema: QUIZ_SCHEMA, maxTokens: QUIZ_MAX_TOKENS };
 }

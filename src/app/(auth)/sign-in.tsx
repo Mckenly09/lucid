@@ -5,56 +5,36 @@ import { TextInput, View } from 'react-native';
 import { Banner } from '@/components/banner';
 import { Button } from '@/components/button';
 import { Header } from '@/components/header';
-import { Icon } from '@/components/icon';
 import { Logo } from '@/components/logo';
 import { RiseIn, STAGGER } from '@/components/rise-in';
 import { Screen } from '@/components/screen';
 import { Sheet } from '@/components/sheet';
 import { Text } from '@/components/text';
-import { AuthError, type AuthErrorKind } from '@/features/auth/types';
+import { TextField } from '@/components/text-field';
+import { AUTH_ERRORS, type ShownAuthError, shownError } from '@/features/auth/errors';
 import { useAuth } from '@/features/auth/useAuth';
 import { useColor } from '@/hooks/use-color';
 
-// auth.md §5 error table. 'cancelled' shows nothing.
-const ERRORS: Record<Exclude<AuthErrorKind, 'cancelled'>, { status: 'warning' | 'danger'; message: string }> = {
-  offline: {
-    status: 'warning',
-    message: 'Connect to the internet once to sign in.',
-  },
-  'play-services': {
-    status: 'warning',
-    message: 'Update Google Play Services, then try again.',
-  },
-  developer: {
-    status: 'danger',
-    message: __DEV__
-      ? 'DEVELOPER_ERROR: check the SHA-1 fingerprints in Firebase and EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID.'
-      : "Sign-in didn't work. Please try again.",
-  },
-  other: {
-    status: 'danger',
-    message: "Sign-in didn't work. Please try again.",
-  },
-};
-
+/** Log in (design: auth.png, first screen). On success the root layout's guards move on. */
 export default function SignIn() {
-  const { signInWithGoogle, continueOffline } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Exclude<AuthErrorKind, 'cancelled'> | null>(null);
+  const { signInWithEmail, signInWithGoogle, continueOffline } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState<'email' | 'google' | null>(null);
+  const [error, setError] = useState<ShownAuthError | null>(null);
   const [offlineOpen, setOfflineOpen] = useState(false);
   const [name, setName] = useState('');
   const placeholderColor = useColor('default');
+  const canLogIn = email.trim() !== '' && password !== '';
 
-  // On success the root layout's guards move on to the download step.
-  const continueWithGoogle = async () => {
+  const run = async (kind: 'email' | 'google', signIn: () => Promise<unknown>) => {
     setError(null);
-    setLoading(true);
+    setBusy(kind);
     try {
-      await signInWithGoogle();
+      await signIn();
     } catch (e) {
-      const kind = e instanceof AuthError ? e.kind : 'other';
-      if (kind !== 'cancelled') setError(kind);
-      setLoading(false);
+      setError(shownError(e));
+      setBusy(null);
     }
   };
 
@@ -63,54 +43,107 @@ export default function SignIn() {
       scroll
       padded={false}
       footer={
-        <View className="gap-6 px-4 pb-8">
-          {/* Keyed so a new error fades in instead of swapping text in place */}
-          <RiseIn fade key={error ?? 'info'}>
-            {error ? (
-              <Banner status={ERRORS[error].status} message={ERRORS[error].message} />
-            ) : (
-              <Banner
-                message="You need internet once to sign in. No internet? Continue without an account."
-                icon={<Icon name="Wifi" size={20} tone="default" />}
-              />
-            )}
-          </RiseIn>
-          <View className="gap-3">
-            <Button label="Continue with Google" size="lg" loading={loading} onPress={continueWithGoogle} />
-            <Button
-              label="Continue without an account"
-              variant="ghost"
-              disabled={loading}
-              onPress={() => setOfflineOpen(true)}
-            />
-            <Text variant="caption" tone="muted" className="text-center font-sans">
-              By continuing you agree to the{' '}
-              <Text
-                variant="caption"
-                tone="primary"
-                accessibilityRole="link"
-                onPress={() => router.push('/settings/privacy')}
-                className="font-semibold underline">
-                Privacy Policy
-              </Text>
-              .
+        <View className="items-center gap-2 px-4 pb-6 pt-3">
+          <Text tone="muted" className="text-center">
+            New to Lucid?{' '}
+            <Text
+              accessibilityRole="link"
+              onPress={() => router.push('/register')}
+              className="font-semibold underline">
+              Create an account
             </Text>
-          </View>
+          </Text>
+          <Text variant="caption" tone="muted" className="text-center font-sans">
+            You need internet to log in once. After that, Lucid works offline.
+          </Text>
         </View>
       }>
       <Header title="Step 1 of 2" subtle />
-      <View className="flex-1 items-center justify-center gap-4 px-4">
-        <RiseIn>
-          <Logo />
-        </RiseIn>
-        <RiseIn delay={STAGGER}>
-          <Text variant="h1" className="text-center" accessibilityRole="header">
-            Sign in to keep your progress
+      <View className="gap-6 px-4 pt-4">
+        <RiseIn className="gap-3">
+          <Logo size="auth" />
+          <Text variant="h1" accessibilityRole="header">
+            Log in to Lucid
           </Text>
+          <Text tone="muted">Keep your cards and quiz scores with your account.</Text>
         </RiseIn>
-        <RiseIn delay={STAGGER * 2} className="items-center">
-          <Text tone="muted" className="max-w-75 text-center">
-            Your flashcards and quiz scores stay with your account. Your questions stay on your phone.
+
+        <RiseIn delay={STAGGER} className="gap-4">
+          <TextField
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="you@email.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            textContentType="emailAddress"
+            returnKeyType="next"
+          />
+          <TextField
+            label="Password"
+            password
+            value={password}
+            onChangeText={setPassword}
+            autoComplete="current-password"
+            textContentType="password"
+            returnKeyType="go"
+            onSubmitEditing={() => canLogIn && void run('email', () => signInWithEmail(email, password))}
+            labelRight={
+              <Text
+                variant="small"
+                tone="muted"
+                accessibilityRole="link"
+                onPress={() => router.push({ pathname: '/reset-password', params: { email: email.trim() } })}
+                className="py-1 font-medium underline">
+                Forgot password?
+              </Text>
+            }
+          />
+          {/* Keyed so a new error fades in instead of swapping text in place */}
+          {error && (
+            <RiseIn fade key={error}>
+              <Banner status={AUTH_ERRORS[error].status} message={AUTH_ERRORS[error].message} />
+            </RiseIn>
+          )}
+          <Button
+            label="Log in"
+            size="lg"
+            loading={busy === 'email'}
+            disabled={!canLogIn || busy === 'google'}
+            onPress={() => void run('email', () => signInWithEmail(email, password))}
+          />
+        </RiseIn>
+
+        <RiseIn delay={STAGGER * 2} className="gap-3">
+          <View className="flex-row items-center gap-3" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <View className="h-px flex-1 bg-ink/10" />
+            <Text variant="caption" tone="muted" className="font-sans">
+              or
+            </Text>
+            <View className="h-px flex-1 bg-ink/10" />
+          </View>
+          <Button
+            label="Continue with Google"
+            variant="outline"
+            size="lg"
+            loading={busy === 'google'}
+            disabled={busy === 'email'}
+            onPress={() => void run('google', signInWithGoogle)}
+          />
+          {/* Not in the design, but students with no internet need it (auth.md §5 offline profile). */}
+          <Button label="Continue without an account" variant="ghost" disabled={busy !== null} onPress={() => setOfflineOpen(true)} />
+          <Text variant="caption" tone="muted" className="text-center font-sans">
+            By continuing you agree to the{' '}
+            <Text
+              variant="caption"
+              tone="primary"
+              accessibilityRole="link"
+              onPress={() => router.push('/settings/privacy')}
+              className="font-semibold underline">
+              Privacy Policy
+            </Text>
+            .
           </Text>
         </RiseIn>
       </View>

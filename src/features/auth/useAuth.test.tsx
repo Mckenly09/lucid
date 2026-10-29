@@ -29,7 +29,7 @@ const as = async (user: AuthUser) =>
   (
     await renderHook(() => useAuth(), {
       wrapper: ({ children }: { children: ReactNode }) => (
-        <AuthContext.Provider value={{ status: 'signedIn', user }}>{children}</AuthContext.Provider>
+        <AuthContext.Provider value={{ status: 'signedIn', user, refresh: () => {} }}>{children}</AuthContext.Provider>
       ),
     })
   ).result.current;

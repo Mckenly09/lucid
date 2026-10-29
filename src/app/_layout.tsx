@@ -32,6 +32,7 @@ function AppStack() {
   const colorScheme = useColorScheme();
   const { status } = useAuth();
   const signedIn = status === 'signedIn';
+  const unverified = status === 'unverified';
   const onboarded = useOnboarding((s) => s.done);
   const welcomed = useOnboarding((s) => s.welcomed);
   const markWelcomed = useOnboarding((s) => s.markWelcomed);
@@ -40,8 +41,8 @@ function AppStack() {
   useEffect(() => Appearance.setColorScheme(appearance === 'system' ? 'unspecified' : appearance), [appearance]);
   // Mark on sign-in, not on "Get started", so Welcome stays reachable until the student actually gets in.
   useEffect(() => {
-    if (signedIn && !welcomed) markWelcomed();
-  }, [signedIn, welcomed, markWelcomed]);
+    if ((signedIn || unverified) && !welcomed) markWelcomed();
+  }, [signedIn, unverified, welcomed, markWelcomed]);
   const [fontsLoaded, fontError] = useFonts({
     Inter: Inter_400Regular,
     'Inter-Medium': Inter_500Medium,
@@ -55,17 +56,31 @@ function AppStack() {
   if ((!fontsLoaded && !fontError) || status === 'loading') return null;
 
   // Without redirectTo, a guarded route falls back to the first route in filesystem order, which is sign-in, not Welcome.
-  const home = !signedIn ? (welcomed ? '/sign-in' : '/onboarding') : !onboarded ? '/onboarding/download' : '/';
+  const home = unverified
+    ? '/verify-email'
+    : !signedIn
+      ? welcomed
+        ? '/sign-in'
+        : '/onboarding'
+      : !onboarded
+        ? '/onboarding/download'
+        : '/';
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!signedIn && !welcomed} redirectTo={home}>
+        <Stack.Protected guard={status === 'signedOut' && !welcomed} redirectTo={home}>
           <Stack.Screen name="onboarding/index" />
         </Stack.Protected>
-        <Stack.Protected guard={!signedIn} redirectTo={home}>
+        <Stack.Protected guard={status === 'signedOut'} redirectTo={home}>
           <Stack.Screen name="(auth)/sign-in" />
+          <Stack.Screen name="(auth)/register" />
+          <Stack.Screen name="(auth)/reset-password" />
+        </Stack.Protected>
+        {/* Email accounts wait here until the link in the email is tapped. */}
+        <Stack.Protected guard={unverified} redirectTo={home}>
+          <Stack.Screen name="(auth)/verify-email" />
         </Stack.Protected>
         <Stack.Protected guard={signedIn && !onboarded} redirectTo={home}>
           <Stack.Screen name="onboarding/download" />
@@ -79,6 +94,8 @@ function AppStack() {
           <Stack.Screen name="settings/model" />
           <Stack.Screen name="packs/[id]" />
           <Stack.Screen name="packs/note" />
+          <Stack.Screen name="tools/calculator" />
+          <Stack.Screen name="tools/periodic-table" />
         </Stack.Protected>
         {/* Not guarded: sign-in links to the privacy policy before the student has an account. */}
         <Stack.Screen name="settings/privacy" />
