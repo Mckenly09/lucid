@@ -7,16 +7,25 @@ import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
 
 // The full privacy policy lives here, in the app, so it works offline. Opens from Settings and from sign-in.
-const UPDATED = '28 October 2026';
+// Keep in step with the public copy in site/privacy/index.html.
+const UPDATED = '30 October 2026';
 
 const SECTIONS = [
   {
     title: 'What stays on your phone',
-    body: 'Your questions, answers, chats, flashcards, quiz scores, your own notes and your settings. They are stored only on this phone. Lucid never sends them to us or to anyone else, and we can’t see them.',
+    body: 'Your questions, answers, chats, flashcards, quiz and practice scores, your own notes and your settings. They are stored only on this phone. Lucid never sends them to us or to anyone else, and we can’t see them.',
   },
   {
-    title: 'If you sign in with Google',
-    body: 'Lucid uses Google Firebase Authentication to sign you in. It gets your name, email, profile photo and a Google account ID. Google keeps this sign-in account on its servers; Lucid uses it only to know it’s you. Nothing else about you is collected.',
+    title: 'If you sign in',
+    body: 'Lucid uses Google Firebase Authentication to sign you in with Google or with email and password. It stores your name, email, profile photo and an account ID; your password is stored by Firebase in a secured form we never see. Lucid uses this only to know it’s you. Nothing else about you is collected.',
+  },
+  {
+    title: 'Camera and microphone',
+    body: 'Scan reads the text in your photo on this phone, then deletes every image file. Voice turns your speech into text on this phone; the recording isn’t saved or sent. Lucid asks for these permissions only when you first use them.',
+  },
+  {
+    title: 'Lucid Plus',
+    body: 'Google Play handles payment; we never see your card. RevenueCat checks whether your subscription is active using your account ID (a random code, not your name or email) and your purchase receipt. Your questions, answers and study data are never sent.',
   },
   {
     title: 'If you continue without an account',
@@ -24,7 +33,7 @@ const SECTIONS = [
   },
   {
     title: 'When Lucid uses the internet',
-    body: 'Only to sign in with Google, to download the AI model (from Hugging Face) and to download subject packs (from GitHub). Like any website, these services see your IP address when you download. Your questions are never sent.',
+    body: 'Only to sign in, to download the AI model and voice packs (from Hugging Face), to download subject packs (from GitHub) and to buy or restore Lucid Plus. Like any website, these services see your IP address. Your questions, photos and recordings are never sent.',
   },
   {
     title: 'No ads, no tracking',
@@ -36,7 +45,7 @@ const SECTIONS = [
   },
   {
     title: 'Deleting your data',
-    body: 'Settings → Delete account and data removes your Google sign-in account and your chats, cards and scores from this phone. Settings → Remove offline profile does the same for a profile without an account. Uninstalling Lucid removes everything it stored on the phone.',
+    body: 'Settings → Delete account and data removes your sign-in account and your chats, cards and scores from this phone. Settings → Remove offline profile does the same for a profile without an account. Uninstalling Lucid removes everything it stored on the phone.',
   },
   {
     title: 'Students',
@@ -44,7 +53,7 @@ const SECTIONS = [
   },
   {
     title: 'Changes and questions',
-    body: 'If this policy changes, the new version comes with an app update. For questions, use the contact email on Lucid’s app store page.',
+    body: 'If this policy changes, the new version comes with an app update. For questions, email Harry Mackenly Romion at lucidstudybuddy@gmail.com.',
   },
 ];
 

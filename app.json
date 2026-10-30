@@ -18,7 +18,7 @@
       "googleServicesFile": "./google-services.json"
     },
     "web": {
-      "output": "server",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -40,7 +40,8 @@
               "arm64-v8a"
             ],
             "useLegacyPackaging": true,
-            "kotlinVersion": "2.4.0"
+            "kotlinVersion": "2.4.0",
+            "extraProguardRules": "-keep class com.imxiqi.rnliveaudiostream.** { *; }"
           },
           "ios": {
             "useFrameworks": "static"
@@ -53,7 +54,22 @@
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-google-signin/google-signin",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Lucid uses the camera to read a question from your book. Photos stay on your phone.",
+          "microphonePermission": "Lucid listens so you can ask by voice. Your voice is never saved or sent.",
+          "recordAudioAndroid": true,
+          "barcodeScannerEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Lucid reads a question from a photo you pick. Photos stay on your phone."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

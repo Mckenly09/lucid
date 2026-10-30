@@ -28,6 +28,9 @@ import { ChoiceSheet } from '@/features/settings/components/ChoiceSheet';
 import { type CardDraft, SaveCardSheet } from '@/features/flashcards/components/SaveCardSheet';
 import { shortenAnswer } from '@/features/flashcards/services/shorten';
 import { useModels } from '@/features/models/store';
+import { LimitSheet } from '@/features/plus/LimitSheet';
+import { useDailyLimit, usePlus } from '@/features/plus/usePlus';
+import { VoiceSheet } from '@/features/voice/components/voice-sheet';
 import { canQuiz, EXPLAIN_LABEL, type ExplainKind } from '@/llm/prompts';
 import { subject, SUBJECTS } from '@/llm/subjects/config';
 import { isFilipino } from '@/llm/subjects/detect';
@@ -56,6 +59,8 @@ export default function Chat() {
   const { ask, explain, retry, stop, setSubject } = useChat.getState();
   const list = useRef<FlatList>(null);
   const installedId = useModels((s) => s.installedId);
+  const { isPlus } = usePlus();
+  const limit = useDailyLimit();
   // Read once per screen: the model needs free space to run well, and a full phone slows everything down.
   const [freeBytes] = useState(() => Paths.availableDiskSpace);
   const lowStorage = freeBytes < LOW_STORAGE_BYTES;
@@ -64,6 +69,7 @@ export default function Chat() {
   const [savedAt, setSavedAt] = useState(-1);
   const [copiedAt, setCopiedAt] = useState(-1);
   const [pickingSubject, setPickingSubject] = useState(false);
+  const [listening, setListening] = useState(false);
   // The question long-pressed (Copy / Edit sheet), and the text Edit put back in the input box.
   const [question, setQuestion] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ text: string; at: number } | null>(null);
@@ -134,6 +140,8 @@ export default function Chat() {
           isGenerating={busy}
           disabled={busy && status === 'loading'}
           placeholder="Ask a follow-up…"
+          onCamera={() => router.push({ pathname: '/scan', params: { chatId: id } })}
+          onMic={() => (isPlus ? setListening(true) : router.push('/plus'))}
         />
       }>
       <Header title={first} bordered right={
@@ -213,7 +221,7 @@ export default function Chat() {
                     label="Quiz me"
                     icon={<Icon name="CircleHelp" size={20} tone="paper" />}
                     disabled={!canQuiz(last.content)}
-                    onPress={() => router.push({ pathname: '/quiz/[id]', params: { id } })}
+                    onPress={() => limit.run(() => router.push({ pathname: '/quiz/[id]', params: { id } }))}
                   />
                   <IconButton
                     accessibilityLabel={copied ? 'Answer copied' : 'Copy answer'}
@@ -312,6 +320,8 @@ export default function Chat() {
           </View>
         )}
       </Sheet>
+      <VoiceSheet visible={listening} onClose={() => setListening(false)} onText={(q) => void ask(id, q)} />
+      <LimitSheet visible={limit.blocked} onClose={limit.dismiss} />
     </Screen>
   );
 }

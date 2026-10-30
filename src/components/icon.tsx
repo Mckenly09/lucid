@@ -7,6 +7,7 @@ import {
   BookmarkCheck,
   BookOpen,
   Calculator,
+  Camera,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -22,6 +23,7 @@ import {
   Eye,
   EyeOff,
   HardDrive,
+  Image,
   House,
   KeyRound,
   Info,
@@ -29,6 +31,8 @@ import {
   Lock,
   Mail,
   MessageCircle,
+  Mic,
+  Pause,
   Pencil,
   Play,
   Plus,
@@ -44,6 +48,7 @@ import {
   Wifi,
   WifiOff,
   X,
+  Zap,
 } from 'lucide-react-native';
 
 import { type ColorToken, useColor } from '@/hooks/use-color';
@@ -58,6 +63,7 @@ const ICONS = {
   BookmarkCheck,
   BookOpen,
   Calculator,
+  Camera,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -73,6 +79,7 @@ const ICONS = {
   Eye,
   EyeOff,
   HardDrive,
+  Image,
   House,
   KeyRound,
   Info,
@@ -80,6 +87,8 @@ const ICONS = {
   Lock,
   Mail,
   MessageCircle,
+  Mic,
+  Pause,
   Pencil,
   Play,
   Plus,
@@ -95,6 +104,7 @@ const ICONS = {
   Wifi,
   WifiOff,
   X,
+  Zap,
 } as const;
 
 export type IconName = keyof typeof ICONS;

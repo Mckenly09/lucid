@@ -2,7 +2,7 @@ import { File } from 'expo-file-system';
 
 import { MODELS, modelById } from '@/llm/models';
 
-import { installedModelPath, useModels } from './store';
+import { createDownloadStore, installedModelPath, useModels } from './store';
 
 // A fake file system: file name → its sha256. Nothing touches the real disk or network (AGENTS.md: no real model).
 const mockFiles = new Map<string, string>();
@@ -18,6 +18,9 @@ jest.mock('./services/files', () => {
     get uri() {
       return `file:///doc/models/${this.name}`;
     }
+    get parentDirectory() {
+      return { create: () => {} };
+    }
     delete() {
       mockFiles.delete(this.name);
     }
@@ -28,13 +31,17 @@ jest.mock('./services/files', () => {
   }
   return {
     modelsDir: () => ({ create: () => {} }),
+    filesOf: (d: { files?: unknown[] }) => d.files ?? [d],
     modelFile: (m: { fileName: string }) => new FakeFile(m.fileName),
     partFile: (m: { fileName: string }) => new FakeFile(`${m.fileName}.part`),
     toPath: (uri: string) => uri.replace(/^file:\/\//, ''),
     verify: async (f: FakeFile, m: { sha256: string }) => mockFiles.get(f.name) === m.sha256,
   };
 });
-jest.mock('expo-file-system', () => ({ File: { createDownloadTask: jest.fn() }, DownloadTask: { fromSavable: jest.fn() } }));
+jest.mock('expo-file-system', () => ({
+  File: { createDownloadTask: jest.fn() },
+  DownloadTask: { fromSavable: jest.fn() },
+}));
 jest.mock('@/utils/kv-storage', () => ({ storage: { getItem: () => null, setItem: () => {}, removeItem: () => {} } }));
 
 const lite = modelById('lite');
@@ -71,7 +78,14 @@ const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 beforeEach(() => {
   mockFiles.clear();
   jest.clearAllMocks();
-  useModels.setState({ installedId: null, activeId: null, paused: null, status: 'available', progress: 0 });
+  useModels.setState({
+    installedId: null,
+    activeId: null,
+    fileIndex: 0,
+    paused: null,
+    status: 'available',
+    progress: 0,
+  });
 });
 
 it('installs a download whose checksum matches the catalog', async () => {
@@ -136,7 +150,9 @@ describe('after a restart', () => {
   });
 
   it('never comes back as a dead "downloading"', () => {
-    expect(merge({ activeId: 'plus', paused: { url: 'u', resumeData: 'r' } }, current)).toMatchObject({ status: 'paused' });
+    expect(merge({ activeId: 'plus', paused: { url: 'u', resumeData: 'r' } }, current)).toMatchObject({
+      status: 'paused',
+    });
     expect(merge({ activeId: 'plus', paused: null }, current)).toMatchObject({ status: 'failed' });
   });
 });
@@ -144,4 +160,86 @@ describe('after a restart', () => {
 it('lists both models with a checksum (sanity check of the catalog)', () => {
   expect(MODELS.map((m) => m.id).sort()).toEqual(['lite', 'plus']);
   expect(MODELS.every((m) => /^[0-9a-f]{64}$/.test(m.sha256))).toBe(true);
+});
+
+describe('an entry with several files (voice pack)', () => {
+  const file = (fileName: string, sha256: string) => ({
+    url: `https://x/${fileName}`,
+    fileName,
+    sizeBytes: 50,
+    sha256,
+  });
+  const packs = {
+    a: { id: 'a' as const, sizeBytes: 100, files: [file('a/enc.onnx', 'e1'), file('a/dec.onnx', 'd1')] },
+    b: { id: 'b' as const, sizeBytes: 50, files: [file('b/enc.onnx', 'e2')] },
+  };
+  const useStore = createDownloadStore<'a' | 'b', (typeof packs)['a' | 'b']>('test-packs', (id) => packs[id]);
+  beforeEach(() =>
+    useStore.setState({
+      installedId: null,
+      activeId: null,
+      fileIndex: 0,
+      paused: null,
+      status: 'available',
+      progress: 0,
+    }),
+  );
+
+  it('downloads every file in order and installs only when all are verified', async () => {
+    nextDownload('e1');
+    nextDownload('d1');
+    useStore.getState().start(packs.a);
+    await settle();
+    expect(useStore.getState()).toMatchObject({ status: 'ready', installedId: 'a', fileIndex: 0 });
+    expect([...mockFiles.keys()].sort()).toEqual(['a/dec.onnx', 'a/enc.onnx']);
+    expect(jest.mocked(File.createDownloadTask).mock.calls.map((c) => c[0])).toEqual([
+      'https://x/a/enc.onnx',
+      'https://x/a/dec.onnx',
+    ]);
+  });
+
+  it('a bad second file fails the pack; retrying keeps the first and fetches only the second', async () => {
+    nextDownload('e1');
+    nextDownload('bad');
+    useStore.getState().start(packs.a);
+    await settle();
+    expect(useStore.getState()).toMatchObject({ status: 'failed', installedId: null, fileIndex: 1 });
+    expect([...mockFiles.keys()]).toEqual(['a/enc.onnx']);
+
+    jest.mocked(File.createDownloadTask).mockClear();
+    nextDownload('d1');
+    useStore.getState().resume();
+    await settle();
+    expect(useStore.getState()).toMatchObject({ status: 'ready', installedId: 'a' });
+    expect(jest.mocked(File.createDownloadTask).mock.calls.map((c) => c[0])).toEqual(['https://x/a/dec.onnx']);
+  });
+
+  it('counts progress across all files', async () => {
+    nextDownload('e1');
+    nextDownload('d1', { pauses: true });
+    useStore.getState().start(packs.a);
+    await settle();
+    expect(useStore.getState()).toMatchObject({ status: 'paused', fileIndex: 1 });
+    const onProgress = jest.mocked(File.createDownloadTask).mock.calls[1][2]!.onProgress!;
+    onProgress({ bytesWritten: 25, totalBytes: 50 });
+    expect(useStore.getState().progress).toBe(0.75);
+  });
+
+  it('installing another pack removes every file of the old one', async () => {
+    mockFiles.set('a/enc.onnx', 'e1');
+    mockFiles.set('a/dec.onnx', 'd1');
+    useStore.setState({ installedId: 'a', status: 'ready' });
+    nextDownload('e2');
+    useStore.getState().start(packs.b);
+    await settle();
+    expect([...mockFiles.keys()]).toEqual(['b/enc.onnx']);
+  });
+
+  it('after a restart, shows ready only if every file is there', () => {
+    const merge = useStore.persist.getOptions().merge!;
+    mockFiles.set('a/enc.onnx', 'e1');
+    expect(merge({ installedId: 'a' }, useStore.getState())).toMatchObject({ installedId: null });
+    mockFiles.set('a/dec.onnx', 'd1');
+    expect(merge({ installedId: 'a' }, useStore.getState())).toMatchObject({ installedId: 'a', status: 'ready' });
+  });
 });

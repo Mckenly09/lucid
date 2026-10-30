@@ -15,6 +15,7 @@ import { Text } from '@/components/text';
 import { hasRoom } from '@/features/models/services/files';
 import { useModels } from '@/features/models/store';
 import { useOnboarding } from '@/features/onboarding/store';
+import { usePlus } from '@/features/plus/usePlus';
 import { type Model, MODELS, modelById, recommendedModel } from '@/llm/models';
 
 const GB = 1024 ** 3;
@@ -22,14 +23,19 @@ const MB = 1024 ** 2;
 
 export default function Download() {
   const finish = useOnboarding((s) => s.finish);
+  const { isPlus } = usePlus();
   const { activeId, status, progress, start, pause, resume } = useModels();
   const network = useNetworkState();
   const ramGB = (Device.totalMemory ?? 0) / GB;
   const freeBytes = Paths.availableDiskSpace;
   const fits = (m: Model) => ramGB === 0 || ramGB >= m.minRamGB;
-  const recommended = recommendedModel(ramGB);
+  // Onboarding installs the best free model; the paid one is offered later in Settings -> AI model.
+  const options = MODELS.filter((m) => !m.plus || isPlus);
+  const recommended = recommendedModel(ramGB, options);
 
-  const [picked, setPicked] = useState(activeId ?? recommended.id);
+  const [picked, setPicked] = useState(
+    activeId && options.some((m) => m.id === activeId) ? activeId : recommended.id,
+  );
   const model = modelById(picked);
   // The store's status belongs to the active model; another picked model hasn't started yet.
   const current = picked === activeId ? status : 'available';
@@ -98,7 +104,7 @@ export default function Download() {
         </RiseIn>
 
         <View className="gap-3">
-          {MODELS.map((m, i) => (
+          {options.map((m, i) => (
             <RiseIn key={m.id} delay={STAGGER * (2 + i)}>
               <ModelCard
                 name={m.name}

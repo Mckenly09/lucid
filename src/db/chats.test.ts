@@ -17,6 +17,7 @@ it('creates the chat with its first message and reads messages back in order, wi
   expect(getChat('u1', 'c1')).toEqual({
     id: 'c1',
     subject: 'science',
+    course: null,
     messages: [
       { role: 'user', content: 'Why do plants need sunlight?' },
       { role: 'assistant', content: 'For photosynthesis.', sources: ['Science · Biology'] },
@@ -61,4 +62,11 @@ it('deletes a chat with its messages and keeps its cards, unlinked', () => {
   expect(getChat('u1', 'c1')).toBeNull();
   expect(getDb().getFirstSync<{ n: number }>('SELECT COUNT(*) AS n FROM messages')?.n).toBe(0);
   expect(listDueCards('u1', Date.now())[0].chatId).toBeNull();
+});
+
+it('keeps the chat course until the subject changes', () => {
+  saveMessage('u1', { ...chat, course: 'bio-1' }, 'user', 'What is a cell?');
+  expect(getChat('u1', 'c1')?.course).toBe('bio-1');
+  setChatSubject('u1', 'c1', 'math');
+  expect(getChat('u1', 'c1')).toMatchObject({ subject: 'math', course: null });
 });

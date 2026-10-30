@@ -13,9 +13,12 @@ import { Text } from '@/components/text';
 import { AccountButton } from '@/features/auth/components/AccountButton';
 import { useAuth } from '@/features/auth/useAuth';
 import { useChat } from '@/features/chat/store';
+import { usePlus } from '@/features/plus/usePlus';
 import { useSettings } from '@/features/settings/store';
 import { SUGGESTIONS } from '@/features/demo-data';
+import { VoiceSheet } from '@/features/voice/components/voice-sheet';
 import { subject, SUBJECTS, type SubjectId } from '@/llm/subjects/config';
+import { coursesFor } from '@/llm/subjects/courses';
 import { detectSubject } from '@/llm/subjects/detect';
 
 const OPTIONS: { id: SubjectId | 'auto'; label: string }[] = [
@@ -34,14 +37,28 @@ export default function Ask() {
   const defaultSubject = useSettings((s) => s.defaultSubject);
   const [chosen, setChosen] = useState<SubjectId | 'auto' | null>(null);
   const picked = chosen ?? defaultSubject;
+  const electives = useSettings((s) => s.electives);
+  // '' is "Any course"; cleared with every subject change because courses belong to one subject.
+  const [courseId, setCourseId] = useState('');
+  const pick = (id: SubjectId | 'auto') => {
+    setChosen(id);
+    setCourseId('');
+  };
+  const courseOptions =
+    picked === 'auto' ? [] : [{ id: '', label: 'Any course' }, ...coursesFor(picked, electives).map((c) => ({ id: c.id, label: c.name }))];
+  // The tab stays mounted: an elective unpicked in Settings, or a new default subject, must not linger here.
+  const course = courseOptions.some((o) => o.id === courseId) ? courseId : '';
   const [lastAt, setLastAt] = useState<string>();
   const { user } = useAuth();
   const input = useRef<ComponentRef<typeof TextInput>>(null);
+  const [listening, setListening] = useState(false);
+  // Voice is a Lucid Plus feature; free students get the paywall instead (subscription.md §6).
+  const { isPlus } = usePlus();
 
   if (params.at !== lastAt) {
     setLastAt(params.at);
     // General has no chip; it means "let Lucid pick".
-    if (params.subject) setChosen(params.subject === 'general' ? 'auto' : params.subject);
+    if (params.subject) pick(params.subject === 'general' ? 'auto' : params.subject);
   }
 
   useEffect(() => {
@@ -52,13 +69,15 @@ export default function Ask() {
   const ask = (q: string) => {
     if (!user) return; // the tabs only render signed in
     const { newChat, ask: send } = useChat.getState();
-    const id = newChat(user.uid, picked === 'auto' ? detectSubject(q) : picked);
+    const id = picked === 'auto' ? newChat(user.uid, detectSubject(q)) : newChat(user.uid, picked, course || null);
     void send(id, q);
     router.push({ pathname: '/chat/[id]', params: { id } });
   };
 
   return (
-    <Screen scroll edges={['top']} footer={<Composer onSend={ask} inputRef={input} />}>
+    <Screen scroll edges={['top']} footer={
+        <Composer onSend={ask} inputRef={input} onCamera={() => router.push('/scan')} onMic={() => (isPlus ? setListening(true) : router.push('/plus'))} />
+      }>
       <View className="h-11 flex-row items-center gap-2">
         <Logo size="sm" />
         <Text variant="h3">Lucid</Text>
@@ -72,12 +91,19 @@ export default function Ask() {
         <Text variant="h1" accessibilityRole="header">
           What are we studying today?
         </Text>
-        <Text tone="muted">Pick a subject, or just ask.</Text>
+        <Text tone="muted">Type, scan a question, or just say it.</Text>
       </View>
 
       <View className="mt-6">
-        <SubjectPicker value={picked} onChange={setChosen} options={OPTIONS} />
+        <SubjectPicker value={picked} onChange={pick} options={OPTIONS} />
       </View>
+
+      {courseOptions.length > 1 && (
+        <View className="mt-4 gap-2">
+          <Text variant="label">Course</Text>
+          <SubjectPicker value={course} onChange={setCourseId} options={courseOptions} />
+        </View>
+      )}
 
       <Text variant="label" className="mb-2 mt-6">
         Try asking
@@ -99,6 +125,7 @@ export default function Ask() {
           </Card>
         ))}
       </View>
+      <VoiceSheet visible={listening} onClose={() => setListening(false)} onText={ask} />
     </Screen>
   );
 }

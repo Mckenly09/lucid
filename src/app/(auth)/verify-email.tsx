@@ -7,6 +7,7 @@ import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
+import { TextLink } from '@/components/text-link';
 import { AUTH_ERRORS, shownError } from '@/features/auth/errors';
 import { useAuth } from '@/features/auth/useAuth';
 
@@ -95,14 +96,7 @@ export default function VerifyEmail() {
           <Text className="font-semibold">{user?.email}</Text>
           {'\n'}Tap it to confirm your account, then come back here.
         </Text>
-        <Text
-          variant="small"
-          accessibilityRole="link"
-          disabled={busy !== null}
-          onPress={() => void change()}
-          className="py-2 font-semibold underline">
-          Wrong email? Change it
-        </Text>
+        <TextLink label="Wrong email? Change it" variant="small" disabled={busy !== null} onPress={() => void change()} />
         {notice && <Banner status={notice.status} message={notice.message} className="self-stretch" />}
       </View>
     </Screen>

@@ -1,6 +1,7 @@
 import * as Device from 'expo-device';
 import { Paths } from 'expo-file-system';
 import { NetworkStateType, useNetworkState } from 'expo-network';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
@@ -12,6 +13,7 @@ import { Icon } from '@/components/icon';
 import { formatSize, ModelCard, type ModelStatus } from '@/components/model-card';
 import { Screen } from '@/components/screen';
 import { Text } from '@/components/text';
+import { usePlus } from '@/features/plus/usePlus';
 import { useChat } from '@/features/chat/store';
 import { hasRoom, STORAGE_MARGIN_BYTES } from '@/features/models/services/files';
 import { useModels } from '@/features/models/store';
@@ -24,6 +26,7 @@ const MB = 1024 ** 2;
 /** Settings → AI model: see what's installed, switch by downloading the other model, or reload a stuck one. */
 export default function AiModel() {
   const { installedId, activeId, status, progress, start, pause, resume } = useModels();
+  const { isPlus } = usePlus();
   const network = useNetworkState();
   const [reloaded, setReloaded] = useState(false);
   const ramGB = (Device.totalMemory ?? 0) / GB;
@@ -67,6 +70,8 @@ export default function AiModel() {
           const s = statusOf(m);
           const tooBig = ramGB > 0 && ramGB < m.minRamGB;
           const room = hasRoom(m, freeBytes);
+          // A model already on the phone keeps working: Plus only gates new downloads.
+          const locked = !!m.plus && !isPlus && m.id !== installedId;
           return (
             <View key={m.id} className="gap-2">
               <ModelCard
@@ -77,10 +82,14 @@ export default function AiModel() {
                 progress={progress}
                 tooBig={tooBig}
                 selected={m.id === installedId}
+                locked={locked}
               />
+              {locked && (
+                <Button label="Get Lucid Plus" variant="secondary" onPress={() => router.push('/plus')} className="self-start" />
+              )}
               {s === 'downloading' && <Button label="Pause" variant="secondary" onPress={pause} className="self-start" />}
               {s === 'paused' && <Button label="Resume" disabled={offline} onPress={resume} className="self-start" />}
-              {(s === 'available' || s === 'failed') && (
+              {(s === 'available' || s === 'failed') && !locked && (
                 <Button
                   label={`${s === 'failed' ? 'Try again' : 'Download'} · ${formatSize(m.sizeBytes / MB)}`}
                   variant="secondary"
@@ -90,7 +99,7 @@ export default function AiModel() {
                   className="self-start"
                 />
               )}
-              {!room && s === 'available' && (
+              {!room && s === 'available' && !locked && (
                 <Text variant="small" tone="warning">
                   Not enough storage. Free up {formatSize((m.sizeBytes + STORAGE_MARGIN_BYTES - freeBytes) / MB)} to download it.
                 </Text>

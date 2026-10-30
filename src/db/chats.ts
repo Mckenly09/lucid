@@ -4,14 +4,19 @@ import { getDb } from './client';
 
 export type Role = 'user' | 'assistant';
 export type ChatSummary = { id: string; subject: SubjectId; title: string; preview: string; updatedAt: number };
-export type StoredChat = { id: string; subject: SubjectId; messages: { role: Role; content: string; sources?: string[] }[] };
+export type StoredChat = {
+  id: string;
+  subject: SubjectId;
+  course: string | null;
+  messages: { role: Role; content: string; sources?: string[] }[];
+};
 
 const PREVIEW_CHARS = 120;
 
 /** Saves one message; the chat row is created by its first message, so empty chats are never stored. */
 export function saveMessage(
   uid: string,
-  chat: { id: string; subject: SubjectId },
+  chat: { id: string; subject: SubjectId; course?: string | null },
   role: Role,
   content: string,
   sources?: string[],
@@ -20,10 +25,11 @@ export function saveMessage(
   const now = Date.now();
   db.withTransactionSync(() => {
     db.runSync(
-      'INSERT OR IGNORE INTO chats (id, uid, subject, title, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT OR IGNORE INTO chats (id, uid, subject, course, title, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
       chat.id,
       uid,
       chat.subject,
+      chat.course ?? null,
       content.slice(0, PREVIEW_CHARS),
       now,
       now,
@@ -50,9 +56,9 @@ export function saveMessage(
 }
 
 /** Newest first. `search` matches the question or the answer preview. */
-/** Follow-up questions use the new subject; earlier answers stay as they were. */
+/** Follow-up questions use the new subject; earlier answers stay as they were. The course belonged to the old subject. */
 export function setChatSubject(uid: string, id: string, subject: SubjectId) {
-  getDb().runSync('UPDATE chats SET subject = ? WHERE id = ? AND uid = ?', subject, id, uid);
+  getDb().runSync('UPDATE chats SET subject = ?, course = NULL WHERE id = ? AND uid = ?', subject, id, uid);
 }
 
 export function listChats(uid: string, search = '', limit = 200): ChatSummary[] {
@@ -71,8 +77,8 @@ export function listChats(uid: string, search = '', limit = 200): ChatSummary[] 
 
 export function getChat(uid: string, id: string): StoredChat | null {
   const db = getDb();
-  const chat = db.getFirstSync<{ id: string; subject: SubjectId }>(
-    'SELECT id, subject FROM chats WHERE id = ? AND uid = ?',
+  const chat = db.getFirstSync<{ id: string; subject: SubjectId; course: string | null }>(
+    'SELECT id, subject, course FROM chats WHERE id = ? AND uid = ?',
     id,
     uid,
   );

@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -13,7 +13,6 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Button } from '@/components/button';
-import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Header } from '@/components/header';
 import { Icon } from '@/components/icon';
@@ -23,12 +22,12 @@ import { saveQuizResult } from '@/db/quiz';
 import { useAuth } from '@/features/auth/useAuth';
 import { useChat } from '@/features/chat/store';
 import { type CardDraft, SaveCardSheet } from '@/features/flashcards/components/SaveCardSheet';
+import { countStart } from '@/features/plus/usePlus';
+import { QuizQuestion } from '@/features/quiz/components/QuizQuestion';
 import { makeQuiz, type QuizError } from '@/features/quiz/generate';
-import type { QuizQuestion } from '@/features/quiz/services/parse';
+import type { QuizQuestion as Question } from '@/features/quiz/services/parse';
 import { canQuiz, QUIZ_COUNT } from '@/llm/prompts';
 import type { SubjectId } from '@/llm/subjects/config';
-
-const LETTERS = ['A', 'B', 'C', 'D'];
 
 const ERRORS: Record<QuizError, string> = {
   invalid: 'This answer might be too short to quiz you on. Try again, or ask Lucid to explain more first.',
@@ -37,16 +36,7 @@ const ERRORS: Record<QuizError, string> = {
   stopped: 'The quiz was stopped.',
 };
 
-type ChoiceState = 'idle' | 'correct' | 'wrong' | 'dim';
-
-const choiceStyle: Record<ChoiceState, string> = {
-  idle: 'border-transparent bg-ink/5 active:bg-ink/10',
-  correct: 'border-success/60 bg-success/10',
-  wrong: 'border-danger/60 bg-danger/10',
-  dim: 'border-transparent bg-ink/5',
-};
-
-type QuizState = { status: 'loading' } | { status: 'error'; error: QuizError } | { status: 'ready'; questions: QuizQuestion[] };
+type QuizState = { status: 'loading' } | { status: 'error'; error: QuizError } | { status: 'ready'; questions: Question[] };
 
 /** Quiz me on a chat's last answer (`id` is the chat id). */
 export default function Quiz() {
@@ -63,20 +53,24 @@ export default function Quiz() {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<QuizState>({ status: 'loading' });
   const [written, setWritten] = useState(0);
+  const uid = user?.uid;
 
   useEffect(() => {
     if (!canQuiz(answer)) return;
     let live = true;
     const run = makeQuiz(answer, (n) => live && setWritten(n));
     void run.done.then((r) => {
-      if (live) setState('questions' in r ? { status: 'ready', questions: r.questions } : { status: 'error', error: r.error });
+      if (!live) return;
+      setState('questions' in r ? { status: 'ready', questions: r.questions } : { status: 'error', error: r.error });
+      // Only a quiz that was actually made counts toward the free daily limit.
+      if ('questions' in r && uid) countStart(uid);
     });
     // Closing the quiz stops the model (AGENTS.md LLM rule 3).
     return () => {
       live = false;
       run.stop();
     };
-  }, [answer, attempt]);
+  }, [answer, attempt, uid]);
 
   const retry = () => {
     setState({ status: 'loading' });
@@ -128,7 +122,7 @@ function Questions({
   subject,
   chatId,
 }: {
-  questions: QuizQuestion[];
+  questions: Question[];
   topic: string;
   subject: SubjectId;
   chatId: string;
@@ -158,13 +152,6 @@ function Questions({
     }
     setPicked(null);
     setIndex(index + 1);
-  };
-
-  const stateOf = (i: number): ChoiceState => {
-    if (picked == null) return 'idle';
-    if (i === q.correct) return 'correct';
-    if (i === picked) return 'wrong';
-    return 'dim';
   };
 
   return (
@@ -232,52 +219,7 @@ function Questions({
         </View>
       ) : (
         <Screen scroll edges={[]}>
-          <View className="gap-1.5 pt-4">
-            <Text variant="label">Question {index + 1}</Text>
-            <Text variant="h2" accessibilityRole="header">
-              {q.question}
-            </Text>
-            <View className="mt-4 gap-2.5">
-              {q.choices.map((c, i) => {
-                const s = stateOf(i);
-                return (
-                  <Pressable
-                    key={c}
-                    onPress={() => pick(i)}
-                    disabled={picked != null}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: picked === i }}
-                    accessibilityLabel={`${LETTERS[i]}: ${c}${s === 'correct' ? ', correct' : s === 'wrong' ? ', your answer, wrong' : ''}`}
-                    className={`min-h-14 flex-row items-center gap-3 rounded-md border px-4 py-3 ${choiceStyle[s]}`}>
-                    <Marker letter={LETTERS[i]} state={s} />
-                    <Text tone={s === 'dim' ? 'muted' : 'ink'} className="flex-1">
-                      {c}
-                    </Text>
-                    {s === 'wrong' && (
-                      <Text variant="caption" tone="danger" className="font-semibold">
-                        Your answer
-                      </Text>
-                    )}
-                    {s === 'correct' && (
-                      <Text variant="caption" tone="success" className="font-semibold">
-                        Correct
-                      </Text>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
-            {picked != null && !!q.why && (
-              <Card className="mt-4 gap-1 p-3">
-                <Text variant="small" className="font-semibold">
-                  Why?
-                </Text>
-                <Text variant="small" tone="muted">
-                  {q.why}
-                </Text>
-              </Card>
-            )}
-          </View>
+          <QuizQuestion q={q} index={index} picked={picked} onPick={pick} />
         </Screen>
       )}
       <SaveCardSheet
@@ -289,24 +231,6 @@ function Questions({
         }}
       />
     </Screen>
-  );
-}
-
-function Marker({ letter, state }: { letter: string; state: ChoiceState }) {
-  if (state === 'correct' || state === 'wrong') {
-    return (
-      <View
-        className={`h-7 w-7 items-center justify-center rounded-full ${state === 'correct' ? 'bg-success' : 'bg-danger'}`}>
-        <Icon name={state === 'correct' ? 'Check' : 'X'} size={16} tone="paper" />
-      </View>
-    );
-  }
-  return (
-    <View className="h-7 w-7 items-center justify-center rounded-full border border-ink/20">
-      <Text variant="caption" tone="muted" className="font-semibold">
-        {letter}
-      </Text>
-    </View>
   );
 }
 

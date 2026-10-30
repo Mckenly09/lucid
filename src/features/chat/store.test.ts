@@ -81,7 +81,7 @@ it('loads the model, then streams the answer into the chat', async () => {
 
 it('opens a saved chat for its own account only', () => {
   jest.mocked(getChat).mockImplementation((uid, id) =>
-    uid === 'u1' ? { id, subject: 'math', messages: [{ role: 'user', content: 'hi' }] } : null,
+    uid === 'u1' ? { id, subject: 'math', course: null, messages: [{ role: 'user', content: 'hi' }] } : null,
   );
   expect(useChat.getState().open('u2', 'c1')).toBe(false);
   expect(useChat.getState().open('u1', 'c1')).toBe(true);

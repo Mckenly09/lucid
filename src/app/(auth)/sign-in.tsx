@@ -11,6 +11,7 @@ import { Screen } from '@/components/screen';
 import { Sheet } from '@/components/sheet';
 import { Text } from '@/components/text';
 import { TextField } from '@/components/text-field';
+import { TextLink } from '@/components/text-link';
 import { AUTH_ERRORS, type ShownAuthError, shownError } from '@/features/auth/errors';
 import { useAuth } from '@/features/auth/useAuth';
 import { useColor } from '@/hooks/use-color';
@@ -44,15 +45,10 @@ export default function SignIn() {
       padded={false}
       footer={
         <View className="items-center gap-2 px-4 pb-6 pt-3">
-          <Text tone="muted" className="text-center">
-            New to Lucid?{' '}
-            <Text
-              accessibilityRole="link"
-              onPress={() => router.push('/register')}
-              className="font-semibold underline">
-              Create an account
-            </Text>
-          </Text>
+          <View className="flex-row flex-wrap items-center justify-center gap-1">
+            <Text tone="muted">New to Lucid?</Text>
+            <TextLink label="Create an account" onPress={() => router.push('/register')} />
+          </View>
           <Text variant="caption" tone="muted" className="text-center font-sans">
             You need internet to log in once. After that, Lucid works offline.
           </Text>
@@ -90,14 +86,12 @@ export default function SignIn() {
             returnKeyType="go"
             onSubmitEditing={() => canLogIn && void run('email', () => signInWithEmail(email, password))}
             labelRight={
-              <Text
+              <TextLink
+                label="Forgot password?"
                 variant="small"
                 tone="muted"
-                accessibilityRole="link"
                 onPress={() => router.push({ pathname: '/reset-password', params: { email: email.trim() } })}
-                className="py-1 font-medium underline">
-                Forgot password?
-              </Text>
+              />
             }
           />
           {/* Keyed so a new error fades in instead of swapping text in place */}
