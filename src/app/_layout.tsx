@@ -11,9 +11,11 @@ import { Appearance, useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { SplashOverlay } from '@/components/splash-overlay';
+import { ToastHost } from '@/components/toast';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { useAuth } from '@/features/auth/useAuth';
 import { useOnboarding } from '@/features/onboarding/store';
+import { usePlusSync } from '@/features/plus/usePlus';
 import { useSettings } from '@/features/settings/store';
 
 SplashScreen.preventAutoHideAsync();
@@ -36,6 +38,7 @@ function AppStack() {
   const onboarded = useOnboarding((s) => s.done);
   const welcomed = useOnboarding((s) => s.welcomed);
   const markWelcomed = useOnboarding((s) => s.markWelcomed);
+  usePlusSync();
   // Settings → Appearance; NativeWind and the navigation theme both follow the app's color scheme.
   const appearance = useSettings((s) => s.appearance);
   useEffect(() => Appearance.setColorScheme(appearance === 'system' ? 'unspecified' : appearance), [appearance]);
@@ -92,14 +95,22 @@ function AppStack() {
           <Stack.Screen name="cards/review" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="settings/index" />
           <Stack.Screen name="settings/model" />
+          <Stack.Screen name="settings/electives" />
+          <Stack.Screen name="plus" options={{ presentation: 'modal' }} />
           <Stack.Screen name="packs/[id]" />
           <Stack.Screen name="packs/note" />
           <Stack.Screen name="tools/calculator" />
           <Stack.Screen name="tools/periodic-table" />
+          <Stack.Screen name="scan/index" options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen name="scan/result" />
+          <Stack.Screen name="practice/session" options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen name="practice/results" options={{ presentation: 'fullScreenModal' }} />
         </Stack.Protected>
-        {/* Not guarded: sign-in links to the privacy policy before the student has an account. */}
+        {/* Not guarded: sign-in links to the privacy policy and terms before the student has an account. */}
         <Stack.Screen name="settings/privacy" />
+        <Stack.Screen name="settings/terms" />
       </Stack>
+      <ToastHost />
       <SplashOverlay />
     </ThemeProvider>
   );

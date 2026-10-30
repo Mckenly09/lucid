@@ -1,5 +1,6 @@
 import type { Turn } from './engine';
 import { subject, type SubjectId } from './subjects/config';
+import { course } from './subjects/courses';
 import { solveLinearSystem } from './subjects/linear';
 
 // Copied from docs/subjects.md "Shared rules"; edit it there first.
@@ -32,8 +33,11 @@ const LANGUAGE_RULE: Record<AnswerLanguage, string> = {
   filipino: '\n\nLaging sumagot sa Filipino, kahit nasa English ang tanong.',
 };
 
-export const systemPrompt = (id: SubjectId, language: AnswerLanguage = 'same') =>
-  `${SHARED_RULES}\n\n${subject(id).systemPrompt}${LANGUAGE_RULE[language]}`;
+/** `courseId` names the student's senior high class (courses.ts); an unknown or missing id adds nothing. */
+export const systemPrompt = (id: SubjectId, language: AnswerLanguage = 'same', courseId?: string | null) => {
+  const c = course(courseId);
+  return `${SHARED_RULES}\n\n${subject(id).systemPrompt}${c ? `\nCourse: ${c.name}.` : ''}${LANGUAGE_RULE[language]}`;
+};
 
 export type ExplainKind = 'simpler' | 'example' | 'filipino' | 'english';
 
@@ -53,15 +57,21 @@ const EXPLAIN_ASK: Record<ExplainKind, string> = {
 };
 
 /** A follow-up on the last answer only, so the prompt stays small (roadmap "Explain levels"). */
-export function buildExplainPrompt(opts: { subjectId: SubjectId; kind: ExplainKind; lastAnswer: string }) {
+export function buildExplainPrompt(opts: { subjectId: SubjectId; course?: string | null; kind: ExplainKind; lastAnswer: string }) {
   const s = subject(opts.subjectId);
   // One user turn holding the answer: some chat templates reject a conversation that starts with the assistant.
   const content = `Here is an explanation:\n${opts.lastAnswer.trim()}\n\n${EXPLAIN_ASK[opts.kind]}`;
-  return { system: systemPrompt(s.id), turns: [{ role: 'user', content } satisfies Turn], temperature: s.temperature };
+  return {
+    system: systemPrompt(s.id, 'same', opts.course),
+    turns: [{ role: 'user', content } satisfies Turn],
+    temperature: s.temperature,
+  };
 }
 
 export function buildPrompt(opts: {
   subjectId: SubjectId;
+  /** Senior high course id (courses.ts), if the student picked one. */
+  course?: string | null;
   question: string;
   /** Earlier messages in this chat, oldest first. */
   history?: Turn[];
@@ -79,7 +89,7 @@ export function buildPrompt(opts: {
   const content = context ? `${context}\n\nQuestion: ${question}` : question;
   return {
     ...(solution && { solution }),
-    system: systemPrompt(s.id, opts.language),
+    system: systemPrompt(s.id, opts.language, opts.course),
     turns: [
       ...(opts.history ?? []).slice(-HISTORY_TURNS).map((t) =>
         t.role === 'assistant' && t.content.length > HISTORY_ANSWER_MAX_CHARS

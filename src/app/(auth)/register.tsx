@@ -113,8 +113,12 @@ export default function Register() {
           </Checkbox>
           <Checkbox checked={agreed} onChange={setAgreed} accessibilityLabel="I agree to the Terms and Privacy Policy.">
             I agree to the{' '}
+            <Text variant="small" accessibilityRole="link" onPress={() => router.push('/settings/terms')} className="font-semibold underline">
+              Terms
+            </Text>{' '}
+            and{' '}
             <Text variant="small" accessibilityRole="link" onPress={() => router.push('/settings/privacy')} className="font-semibold underline">
-              Terms and Privacy Policy
+              Privacy Policy
             </Text>
             .
           </Checkbox>

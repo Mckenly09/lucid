@@ -17,6 +17,8 @@ type Props = {
   recommended?: boolean;
   tooBig?: boolean;
   selected?: boolean;
+  /** Paid model the student hasn't unlocked (Settings -> Lucid Plus). */
+  locked?: boolean;
   onPress?: () => void;
 };
 
@@ -25,7 +27,9 @@ export function formatSize(mb: number) {
 }
 
 export function ModelCard(p: Props) {
-  const badge = p.tooBig ? (
+  const badge = p.locked ? (
+    <Badge label="Plus" status="primary" />
+  ) : p.tooBig ? (
     <Badge label="Needs more memory" status="warning" />
   ) : p.status === 'ready' ? (
     <Badge label="Ready" status="success" />
@@ -40,7 +44,7 @@ export function ModelCard(p: Props) {
     <Card
       variant={p.selected ? 'selected' : 'outlined'}
       onPress={p.onPress}
-      accessibilityLabel={`${p.name}, ${p.description}, ${formatSize(p.sizeMB)}`}
+      accessibilityLabel={`${p.name}, ${p.description}, ${formatSize(p.sizeMB)}${p.locked ? ', Plus' : ''}`}
       className="gap-3">
       <View className="flex-row items-start gap-3">
         <View className="flex-1">

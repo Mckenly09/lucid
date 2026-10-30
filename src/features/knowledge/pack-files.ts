@@ -45,3 +45,19 @@ export function searchPack(p: PackRef, match: string, limit = 2) {
     limit,
   );
 }
+
+/** Every subject, grade and topic a pack covers (Practice lists these). Chunks without a grade can't be placed, so they're left out. */
+export function packTopics(p: PackRef) {
+  return db(p).getAllSync<{ subject: string; grade: number; topic: string }>(
+    'SELECT DISTINCT subject, grade, topic FROM chunks WHERE grade IS NOT NULL ORDER BY grade, topic',
+  );
+}
+
+/** `limit` chunks of one topic, a new random pick each call so practice sessions vary. */
+export function topicChunks(p: PackRef, topic: string, limit: number) {
+  return db(p).getAllSync<{ title: string; text: string }>(
+    'SELECT title, text FROM chunks WHERE topic = ? ORDER BY random() LIMIT ?',
+    topic,
+    limit,
+  );
+}

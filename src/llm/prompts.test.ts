@@ -106,3 +106,13 @@ it('turns Quiz me off for answers under the word minimum', () => {
   expect(canQuiz('Yes, that is right!')).toBe(false);
   expect(canQuiz(Array(40).fill('word').join(' '))).toBe(true);
 });
+
+it('names the senior high course in the system prompt, and ignores an unknown one', () => {
+  const p = buildPrompt({ subjectId: 'science', course: 'chem-1', question: 'What is a mole?' });
+  expect(p.system).toContain('Course: Chemistry 1.');
+  expect(estimateTokens(p.system)).toBeLessThanOrEqual(250);
+  expect(systemPrompt('science', 'same', 'nope')).toBe(systemPrompt('science'));
+  expect(buildExplainPrompt({ subjectId: 'math', course: 'stat-prob', kind: 'simpler', lastAnswer: 'x' }).system).toContain(
+    'Course: Statistics and Probability.',
+  );
+});

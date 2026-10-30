@@ -12,7 +12,8 @@ import { subject, type SubjectId } from '@/llm/subjects/config';
 
 /** `sources`: the packs an answer's reference notes came from (source chips). */
 export type Message = engine.Turn & { sources?: string[] };
-export type Chat = { id: string; uid: string; subject: SubjectId; messages: Message[] };
+/** `course`: a senior high course id (src/llm/subjects/courses.ts), null for any course of the subject. */
+export type Chat = { id: string; uid: string; subject: SubjectId; course: string | null; messages: Message[] };
 export type ChatStatus = 'idle' | 'loading' | 'generating';
 export type ChatError = 'no-model' | 'load' | 'generate';
 
@@ -23,7 +24,7 @@ type State = {
   activeId: string | null;
   status: ChatStatus;
   error: { chatId: string; kind: ChatError } | null;
-  newChat: (uid: string, subject: SubjectId) => string;
+  newChat: (uid: string, subject: SubjectId, course?: string | null) => string;
   /** Loads a saved chat into memory; false when it doesn't exist for this account. */
   open: (uid: string, chatId: string) => boolean;
   /** Changes the subject for follow-up questions (option b in todo.md); earlier answers aren't re-asked. */
@@ -47,7 +48,7 @@ const turn = ({ role, content }: Message) => ({ role, content }) as engine.Turn;
 function askPrompt(chat: Chat, question: string, history: Message[]): Prompt {
   const { notes, sources } = findReferenceNotes(chat.uid, chat.subject, question);
   const language = useSettings.getState().answerLanguage;
-  return { ...buildPrompt({ subjectId: chat.subject, question, history: history.map(turn), notes, language }), sources };
+  return { ...buildPrompt({ subjectId: chat.subject, course: chat.course, question, history: history.map(turn), notes, language }), sources };
 }
 
 /** Streamed tokens reach the screen in batches: one render per ~50 ms instead of one per token. */
@@ -154,9 +155,9 @@ export const useChat = create<State>()((set, get) => {
     status: 'idle',
     error: null,
 
-    newChat: (uid, subject) => {
+    newChat: (uid, subject, course = null) => {
       const id = String(Date.now());
-      set((s) => ({ chats: { ...s.chats, [id]: { id, uid, subject, messages: [] } } }));
+      set((s) => ({ chats: { ...s.chats, [id]: { id, uid, subject, course, messages: [] } } }));
       return id;
     },
 
@@ -171,7 +172,7 @@ export const useChat = create<State>()((set, get) => {
     setSubject: (chatId, subject) => {
       const chat = get().chats[chatId];
       if (!chat || chat.subject === subject) return;
-      set((s) => ({ chats: { ...s.chats, [chatId]: { ...chat, subject } } }));
+      set((s) => ({ chats: { ...s.chats, [chatId]: { ...chat, subject, course: null } } }));
       try {
         setChatSubject(chat.uid, chatId, subject);
       } catch (e) {
@@ -189,7 +190,7 @@ export const useChat = create<State>()((set, get) => {
       const chat = get().chats[chatId];
       const last = chat?.messages[chat.messages.length - 1];
       if (!chat || get().status !== 'idle' || last?.role !== 'assistant') return;
-      await send(chat, EXPLAIN_LABEL[kind], buildExplainPrompt({ subjectId: chat.subject, kind, lastAnswer: last.content }));
+      await send(chat, EXPLAIN_LABEL[kind], buildExplainPrompt({ subjectId: chat.subject, course: chat.course, kind, lastAnswer: last.content }));
     },
 
     retry: (chatId) => {

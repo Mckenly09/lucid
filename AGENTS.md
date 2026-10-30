@@ -72,7 +72,7 @@ src/
 
 ## Roadmap
 
-Features ship in versions — see `docs/roadmap.md`. Only build features in the **current version** (v1). If a task needs a feature from a later version, stop and ask.
+Features ship in versions — see `docs/roadmap.md`. Version 2 (scan, voice, practice) is specified in `docs/lucid-handoff/v2.md` (designs in `docs/lucid-handoff/design/`). Only build features in the **current version** (v2). If a task needs a feature from a later version, stop and ask.
 
 ## Rules for the LLM layer
 
@@ -106,7 +106,8 @@ Full spec in `docs/auth.md`. The essentials:
 
 ## Offline rules
 
-- No network calls at runtime except: Google sign-in and token refresh, model download, knowledge-pack download, and (opt-in) update checks.
+- No network calls at runtime except: Google sign-in and token refresh, model download, knowledge-pack download, voice-pack download (v2), and (opt-in) update checks.
+- Camera photos and voice recordings never leave the phone and are deleted right after use (v2).
 - No analytics, crash reporting, or telemetry that sends user questions anywhere. Student questions never leave the device.
 - Every screen must render and work in airplane mode. Test it.
 

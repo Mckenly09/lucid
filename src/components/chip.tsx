@@ -20,7 +20,7 @@ export function Chip({ label, selected, onPress, icon, className = '' }: Props) 
       accessibilityState={{ selected }}
       className={`min-h-9 flex-row items-center gap-2 rounded-full border px-3 ${selected ? 'border-primary bg-primary/10' : 'border-transparent bg-ink/5 active:bg-ink/10'} ${className}`}>
       {icon}
-      <Text className={`text-small ${selected ? 'font-semibold text-primary' : 'font-medium text-ink'}`}>{label}</Text>
+      <Text className={`shrink text-small ${selected ? 'font-semibold text-primary' : 'font-medium text-ink'}`}>{label}</Text>
     </Pressable>
   );
 }

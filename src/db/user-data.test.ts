@@ -17,6 +17,7 @@ it('deletes every uid-keyed table for that account only', () => {
   deleteUserData('u1');
   expect(ran.map((r) => r[0])).toEqual([
     'DELETE FROM quiz_results WHERE uid = ?',
+    'DELETE FROM practice_sessions WHERE uid = ?',
     'DELETE FROM cards WHERE uid = ?',
     'DELETE FROM chats WHERE uid = ?',
     'DELETE FROM user_packs WHERE uid = ?',
@@ -28,5 +29,6 @@ it('moves an offline profile to the Google uid', () => {
   const ran = fakeDb();
   moveUserData('local-1', 'g1');
   expect(ran).toContainEqual(['UPDATE cards SET uid = ? WHERE uid = ?', 'g1', 'local-1']);
-  expect(ran).toHaveLength(4);
+  expect(ran).toContainEqual(['UPDATE practice_sessions SET uid = ? WHERE uid = ?', 'g1', 'local-1']);
+  expect(ran).toHaveLength(5);
 });

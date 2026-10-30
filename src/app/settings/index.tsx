@@ -20,6 +20,7 @@ import { exportBackup, importBackup, pickBackup } from '@/features/backup/backup
 import type { BackupData } from '@/features/backup/services/backup';
 import { cancelReminder, REMINDER_HOUR, scheduleReminder } from '@/features/flashcards/reminder';
 import { useModels } from '@/features/models/store';
+import { usePlus } from '@/features/plus/usePlus';
 import { ChoiceSheet } from '@/features/settings/components/ChoiceSheet';
 import { DeleteAccountSheet } from '@/features/settings/components/DeleteAccountSheet';
 import { SignOutSheet } from '@/features/settings/components/SignOutSheet';
@@ -51,6 +52,13 @@ export default function Settings() {
   const { user, signInWithGoogle } = useAuth();
   const settings = useSettings();
   const installedId = useModels((s) => s.installedId);
+  const plus = usePlus();
+  const endDate = plus.expiresAt && new Date(plus.expiresAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const plusValue = !plus.isPlus
+    ? 'Free · Upgrade'
+    : endDate
+      ? `Active · ${plus.willRenew ? 'renews' : 'ends'} ${endDate}`
+      : 'Active';
   const switchOn = useColor('primary');
   const switchOff = useColor('default');
   const [open, setOpen] = useState<Open>(null);
@@ -171,6 +179,12 @@ export default function Settings() {
             value={labelOf(LANGUAGE_OPTIONS, settings.answerLanguage)}
             onPress={() => setOpen('language')}
           />
+          <Row
+            icon="BookOpen"
+            label="My electives"
+            value={settings.electives.length ? `${settings.electives.length} picked` : 'None'}
+            onPress={() => router.push('/settings/electives')}
+          />
           {/* A plain row, not ListItem: a pressable parent would hide the Switch from screen readers. */}
           <View className="min-h-11 flex-row items-center gap-3 border-b border-ink/10 py-3">
             <Icon name="Bell" size={20} tone="muted" />
@@ -187,6 +201,15 @@ export default function Settings() {
         </Group>
 
         <Group title="AI & storage">
+          <Row icon="Zap" label="Lucid Plus" value={plusValue} onPress={() => router.push('/plus')} />
+          {plus.status === 'lapsed' && (
+            <Banner
+              status="warning"
+              message="Connect once to keep Lucid Plus active."
+              icon={<Icon name="WifiOff" size={22} tone="warning" />}
+              className="mt-3"
+            />
+          )}
           <Row icon="Cpu" label="AI model" value={model?.name ?? 'Not downloaded'} onPress={() => router.push('/settings/model')} />
           <Row
             icon="HardDrive"
@@ -209,6 +232,7 @@ export default function Settings() {
             onPress={() => setOpen('appearance')}
           />
           <Row icon="Shield" label="Privacy" onPress={() => router.push('/settings/privacy')} />
+          <Row icon="BookOpen" label="Terms and conditions" onPress={() => router.push('/settings/terms')} />
           <Row icon="Info" label="About Lucid" value={`v${Constants.expoConfig?.version ?? '1.0.0'}`} />
         </Group>
 

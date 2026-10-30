@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { type ReactElement, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -10,14 +10,47 @@ import { IconButton } from '@/components/icon-button';
 import { SubjectCode } from '@/components/list-item';
 import { ProgressBar } from '@/components/progress-bar';
 import { Screen } from '@/components/screen';
+import { Segmented } from '@/components/segmented';
 import { Sheet } from '@/components/sheet';
 import { Text } from '@/components/text';
 import { type Deck, deleteDeck } from '@/db/cards';
 import { useAuth } from '@/features/auth/useAuth';
 import { reviewMinutes, useDecks } from '@/features/flashcards/useCards';
+import { PracticePanel } from '@/features/practice/components/PracticePanel';
 import { subject } from '@/llm/subjects/config';
 
+type CardsView = 'cards' | 'practice';
+const VIEWS: { id: CardsView; label: string }[] = [
+  { id: 'cards', label: 'My cards' },
+  { id: 'practice', label: 'Practice' },
+];
+
+/** "Cards" with the My cards | Practice switch (design v2-05); Practice lives here, not in a new tab (v2.md §3). */
+function TitleRow({ view, onChange }: { view: CardsView; onChange: (v: CardsView) => void }) {
+  return (
+    <View className="flex-row flex-wrap items-center justify-between gap-3 pt-6">
+      <Text variant="h1" accessibilityRole="header">
+        Cards
+      </Text>
+      <Segmented value={view} onChange={onChange} options={VIEWS} label="Cards view" />
+    </View>
+  );
+}
+
 export default function Cards() {
+  const [view, setView] = useState<CardsView>('cards');
+  const title = <TitleRow view={view} onChange={setView} />;
+  if (view === 'practice') {
+    return (
+      <Screen edges={['top']} padded={false}>
+        <PracticePanel header={title} />
+      </Screen>
+    );
+  }
+  return <MyCards title={title} />;
+}
+
+function MyCards({ title }: { title: ReactElement }) {
   const { user } = useAuth();
   const { decks, due, total, refresh } = useDecks();
   const [shuffled, setShuffled] = useState(false);
@@ -37,9 +70,7 @@ export default function Cards() {
   if (total === 0) {
     return (
       <Screen edges={['top']}>
-        <Text variant="h1" accessibilityRole="header" className="pt-6">
-          Cards
-        </Text>
+        {title}
         <EmptyState
           icon={
             <View className="mb-2 h-16 w-16 items-center justify-center rounded-lg border border-ink/10 bg-ink/5">
@@ -48,7 +79,14 @@ export default function Cards() {
           }
           title="No cards yet"
           message="When an answer helps you, tap the bookmark to save it as a card. Lucid will remind you to review it."
-          action={<Button label="Ask a question" variant="secondary" onPress={() => router.navigate('/ask')} className="mt-4" />}
+          action={
+            <Button
+              label="Ask a question"
+              variant="secondary"
+              onPress={() => router.navigate('/ask')}
+              className="mt-4"
+            />
+          }
         />
       </Screen>
     );
@@ -64,10 +102,8 @@ export default function Cards() {
         contentContainerClassName="px-4 pb-6"
         ListHeaderComponent={
           <View>
-            <View className="gap-1 pt-6">
-              <Text variant="h1" accessibilityRole="header">
-                Cards
-              </Text>
+            <View className="gap-1">
+              {title}
               <Text variant="small" tone="muted">
                 {total === 1 ? '1 card' : `${total} cards`} in {decks.length === 1 ? '1 deck' : `${decks.length} decks`}
               </Text>
