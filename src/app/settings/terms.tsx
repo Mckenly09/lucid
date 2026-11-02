@@ -60,7 +60,7 @@ const SECTIONS = [
   },
   {
     title: 'Governing law and contact',
-    body: 'These terms are governed by the laws of the Republic of the Philippines. For questions, email Harry Mackenly Romion at lucidstudybuddy@gmail.com.',
+    body: 'These terms are governed by the laws of the Republic of the Philippines. For questions, email Harry Mack at lucidstudybuddy@gmail.com.',
   },
 ];
 

@@ -53,7 +53,7 @@ const SECTIONS = [
   },
   {
     title: 'Changes and questions',
-    body: 'If this policy changes, the new version comes with an app update. For questions, email Harry Mackenly Romion at lucidstudybuddy@gmail.com.',
+    body: 'If this policy changes, the new version comes with an app update. For questions, email Harry Mack at lucidstudybuddy@gmail.com.',
   },
 ];
 
