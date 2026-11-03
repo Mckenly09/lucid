@@ -8,15 +8,13 @@ Android only. There is no iOS build.
 
 ## Download
 
-**[⬇ Download the Lucid preview APK](https://expo.dev/artifacts/eas/8NiTyq3urnAkuzA7MYb59Er8b5BoJyQOb6viZrflCUo.apk)**
+**[⬇ Download the Lucid preview APK](https://github.com/Mckenly09/lucid/releases/download/v1.0.0-preview.1/Lucid-v1.0.0-preview.1.apk)**
 
-Current preview: version 1.0.0, built 3 November 2026 — about **68 MB**. The AI model is not in the APK; the app downloads it on first run.
-
-On a computer? Open the [build page](https://expo.dev/accounts/mckenly/projects/lucid/builds/6688a6e9-f6b1-4056-9a64-ed1f17aabe22) and scan its QR code with your phone.
+Current preview: `Lucid-v1.0.0-preview.1.apk`, built 3 November 2026 — about **68 MB**. The AI model is not in the APK; the app downloads it on first run.
 
 New in this preview: Filipino and Araling Panlipunan subject packs, voice settings moved to **Settings → Voice**, a smoother screen while Lucid answers, the keyboard no longer pushes the whole screen up, and asking a question you already asked opens your earlier answer.
 
-Older betas: <https://github.com/Mckenly09/lucid/releases>
+All releases: <https://github.com/Mckenly09/lucid/releases>
 
 ## How to install
 
