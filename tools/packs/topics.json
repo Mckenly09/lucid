@@ -1,5 +1,5 @@
 {
-  "_note": "Topic names from the DepEd K-12 Science, Math and English curriculum guides (topic names only, no module text). Proposed by the agent from memory; the developer reviews them against the official guide / MATATAG (docs/packs.md, todo.md).",
+  "_note": "Topic names from the DepEd K-12 Science, Math, English, Filipino and Araling Panlipunan curriculum guides (topic names only, no module text). Proposed by the agent from memory; the developer reviews them against the official guide / MATATAG (docs/packs.md, todo.md).",
   "science": {
     "7": [
       { "code": "sci7-substances-mixtures", "name": "Substances and mixtures" },
@@ -132,6 +132,51 @@
       { "code": "eng10-research", "name": "Research: sources, paraphrasing and citing" },
       { "code": "eng10-persuasive-speech", "name": "Persuasive speeches and rhetorical devices" },
       { "code": "eng10-text-types", "name": "Text types and structures" }
+    ]
+  },
+  "filipino": {
+    "7": [
+      { "code": "fil7-pangngalan-panghalip", "name": "Pangngalan at panghalip" },
+      { "code": "fil7-pandiwa-aspekto", "name": "Pandiwa at aspekto nito" },
+      { "code": "fil7-karunungang-bayan", "name": "Karunungang-bayan" },
+      { "code": "fil7-ibong-adarna", "name": "Ibong Adarna" }
+    ],
+    "8": [
+      { "code": "fil8-pang-uri-pang-abay", "name": "Pang-uri, kaantasan nito at pang-abay" },
+      { "code": "fil8-pangatnig", "name": "Pangatnig at transitional devices" },
+      { "code": "fil8-florante-at-laura", "name": "Florante at Laura" }
+    ],
+    "9": [
+      { "code": "fil9-pokus-ng-pandiwa", "name": "Pokus ng pandiwa" },
+      { "code": "fil9-tayutay", "name": "Tayutay" },
+      { "code": "fil9-noli-me-tangere", "name": "Noli Me Tangere" }
+    ],
+    "10": [
+      { "code": "fil10-mitolohiya", "name": "Mitolohiya" },
+      { "code": "fil10-sanaysay-talumpati", "name": "Sanaysay at talumpati" },
+      { "code": "fil10-el-filibusterismo", "name": "El Filibusterismo" }
+    ]
+  },
+  "social": {
+    "7": [
+      { "code": "ap7-heograpiya-asya", "name": "Heograpiya ng Asya" },
+      { "code": "ap7-sinaunang-kabihasnan", "name": "Sinaunang kabihasnan sa Asya" },
+      { "code": "ap7-kolonyalismo-nasyonalismo", "name": "Kolonyalismo at nasyonalismo sa Asya" }
+    ],
+    "8": [
+      { "code": "ap8-klasikal-greece-rome", "name": "Kabihasnang klasikal: Greece at Rome" },
+      { "code": "ap8-gitnang-panahon-renaissance", "name": "Gitnang Panahon at Renaissance" },
+      { "code": "ap8-digmaang-pandaigdig", "name": "Unang at Ikalawang Digmaang Pandaigdig" }
+    ],
+    "9": [
+      { "code": "ap9-kakapusan-sistemang-ekonomiko", "name": "Kakapusan at mga sistemang pang-ekonomiya" },
+      { "code": "ap9-demand-supply", "name": "Demand, supply at pamilihan" },
+      { "code": "ap9-makroekonomiks", "name": "Pambansang ekonomiya: GDP, implasyon at patakaran" }
+    ],
+    "10": [
+      { "code": "ap10-isyung-pangkapaligiran", "name": "Isyung pangkapaligiran at disaster risk reduction" },
+      { "code": "ap10-globalisasyon-paggawa", "name": "Globalisasyon, paggawa at migrasyon" },
+      { "code": "ap10-karapatang-pantao-gender", "name": "Karapatang pantao, gender at pagkamamamayan" }
     ]
   }
 }
