@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { type ReactElement, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -17,7 +17,7 @@ import { practiceTopics } from '../topics';
 import { TopicRow } from './TopicRow';
 
 /** Cards → Practice (design v2-05): subject and grade chips from the installed packs, then the topics to practice. */
-export function PracticePanel({ header }: { header: ReactElement }) {
+export function PracticePanel() {
   const installed = usePacks((s) => s.installed);
   const topics = useMemo(() => practiceTopics(Object.values(installed), packTopics), [installed]);
   const subjects = SUBJECTS.filter((s) => topics.some((t) => t.subject === s.id));
@@ -33,7 +33,6 @@ export function PracticePanel({ header }: { header: ReactElement }) {
   if (!topics.length) {
     return (
       <View className="flex-1 px-4">
-        {header}
         <EmptyState
           icon={
             <View className="mb-2 h-16 w-16 items-center justify-center rounded-lg border border-ink/10 bg-ink/5">
@@ -72,7 +71,6 @@ export function PracticePanel({ header }: { header: ReactElement }) {
       )}
       ListHeaderComponent={
         <View>
-          {header}
           <Text tone="muted" className="mt-4">
             Pick a topic. Lucid makes questions from your subject packs.
           </Text>

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { type ReactElement, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -39,18 +40,21 @@ function TitleRow({ view, onChange }: { view: CardsView; onChange: (v: CardsView
 
 export default function Cards() {
   const [view, setView] = useState<CardsView>('cards');
-  const title = <TitleRow view={view} onChange={setView} />;
-  if (view === 'practice') {
-    return (
-      <Screen edges={['top']} padded={false}>
-        <PracticePanel header={title} />
-      </Screen>
-    );
-  }
-  return <MyCards title={title} />;
+  // One Screen and a fixed title, so switching only fades in the content below instead of rebuilding the page.
+  // Short fade: a long one leaves the page blank for a moment and reads as a flicker.
+  return (
+    <Screen edges={['top']} padded={false}>
+      <View className="px-4">
+        <TitleRow view={view} onChange={setView} />
+      </View>
+      <Animated.View key={view} entering={FadeIn.duration(150)} className="flex-1">
+        {view === 'practice' ? <PracticePanel /> : <MyCards />}
+      </Animated.View>
+    </Screen>
+  );
 }
 
-function MyCards({ title }: { title: ReactElement }) {
+function MyCards() {
   const { user } = useAuth();
   const { decks, due, total, refresh } = useDecks();
   const [shuffled, setShuffled] = useState(false);
@@ -69,8 +73,7 @@ function MyCards({ title }: { title: ReactElement }) {
 
   if (total === 0) {
     return (
-      <Screen edges={['top']}>
-        {title}
+      <View className="flex-1 px-4">
         <EmptyState
           icon={
             <View className="mb-2 h-16 w-16 items-center justify-center rounded-lg border border-ink/10 bg-ink/5">
@@ -88,13 +91,13 @@ function MyCards({ title }: { title: ReactElement }) {
             />
           }
         />
-      </Screen>
+      </View>
     );
   }
 
   const dueDecks = decks.filter((d) => d.due > 0);
   return (
-    <Screen edges={['top']} padded={false}>
+    <View className="flex-1">
       <FlatList
         data={decks}
         keyExtractor={(d) => d.subject}
@@ -102,12 +105,9 @@ function MyCards({ title }: { title: ReactElement }) {
         contentContainerClassName="px-4 pb-6"
         ListHeaderComponent={
           <View>
-            <View className="gap-1">
-              {title}
-              <Text variant="small" tone="muted">
-                {total === 1 ? '1 card' : `${total} cards`} in {decks.length === 1 ? '1 deck' : `${decks.length} decks`}
-              </Text>
-            </View>
+            <Text variant="small" tone="muted" className="pt-1">
+              {total === 1 ? '1 card' : `${total} cards`} in {decks.length === 1 ? '1 deck' : `${decks.length} decks`}
+            </Text>
 
             <Card variant="outlined" className="mt-6 gap-4">
               <View className="min-h-11 flex-row items-center justify-between">
@@ -185,7 +185,7 @@ function MyCards({ title }: { title: ReactElement }) {
           <Button label="Delete" variant="danger" size="lg" className="flex-1" onPress={remove} />
         </View>
       </Sheet>
-    </Screen>
+    </View>
   );
 }
 
