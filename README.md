@@ -8,21 +8,25 @@ Android only. There is no iOS build.
 
 ## Download
 
-**[⬇ Download the latest Lucid APK](https://github.com/Mckenly09/lucid/releases/latest)**
+**[⬇ Download the Lucid preview APK](https://expo.dev/artifacts/eas/8NiTyq3urnAkuzA7MYb59Er8b5BoJyQOb6viZrflCUo.apk)**
 
-Current beta: `Lucid-v1.0.0-beta.1.apk` — about **61 MB**. The AI model is not in the APK; the app downloads it on first run.
+Current preview: version 1.0.0, built 3 November 2026 — about **68 MB**. The AI model is not in the APK; the app downloads it on first run.
 
-All releases: <https://github.com/Mckenly09/lucid/releases>
+On a computer? Open the [build page](https://expo.dev/accounts/mckenly/projects/lucid/builds/6688a6e9-f6b1-4056-9a64-ed1f17aabe22) and scan its QR code with your phone.
+
+New in this preview: Filipino and Araling Panlipunan subject packs, voice settings moved to **Settings → Voice**, a smoother screen while Lucid answers, the keyboard no longer pushes the whole screen up, and asking a question you already asked opens your earlier answer.
+
+Older betas: <https://github.com/Mckenly09/lucid/releases>
 
 ## How to install
 
 1. Open the download link **on your Android phone** (not on a computer).
 2. Tap the APK. If your browser asks, choose **Download anyway** — Android warns about files from outside the Play Store.
 3. Open the downloaded file. Android will say the app can't be installed from this source — tap **Settings**, turn on **Allow from this source** for your browser or Files app, then go back and tap **Install**.
-4. Play Protect may say the app is from an unknown developer. Tap **More details → Install anyway**. This is expected: the beta is not signed by Google Play.
+4. Play Protect may say the app is from an unknown developer. Tap **More details → Install anyway**. This is expected: the preview is not from Google Play.
 5. Open **Lucid** and let it download the AI model (see below).
 
-To update later, download the newer APK and install it over the old one. The first beta is signed with a debug key, so for now you may need to uninstall the old version first — your chats and cards will be lost. Use **Settings → Export my data** before you do.
+**Coming from the first beta (`Lucid-v1.0.0-beta.1.apk`)?** The preview is signed with a different key, so Android won't install it over the beta. In the old app, use **Settings → Export my data** first, then uninstall it, install the preview, and use **Settings → Import a backup**. Without the export, your chats and cards are lost. Later previews install over this one.
 
 ## What device you need
 
@@ -70,7 +74,7 @@ The privacy policy and terms are in the app: **Settings → Privacy** and **Sett
 
 Lucid is a small AI model running on a phone. **AI can be wrong — check your textbook.** It is a study helper, not a replacement for your teacher or for doing the work yourself.
 
-The beta build is signed with a temporary debug key and may contain bugs. Report problems at <https://github.com/Mckenly09/lucid/issues>.
+This is a preview build and may contain bugs. Report problems at <https://github.com/Mckenly09/lucid/issues>.
 
 ## License
 
