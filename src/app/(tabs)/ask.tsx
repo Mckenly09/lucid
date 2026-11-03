@@ -12,6 +12,7 @@ import { SubjectPicker } from '@/components/subject-picker';
 import { Text } from '@/components/text';
 import { AccountButton } from '@/features/auth/components/AccountButton';
 import { useAuth } from '@/features/auth/useAuth';
+import { findAnsweredChat } from '@/db/chats';
 import { useChat } from '@/features/chat/store';
 import { useSettings } from '@/features/settings/store';
 import { SUGGESTIONS } from '@/features/demo-data';
@@ -65,6 +66,9 @@ export default function Ask() {
   useFocusEffect(useCallback(() => useChat.getState().warmUp(), []));
   const ask = (q: string) => {
     if (!user) return; // the tabs only render signed in
+    // Asked before: open that answer instead of writing it again and adding a duplicate to History.
+    const done = findAnsweredChat(user.uid, q);
+    if (done) return router.push({ pathname: '/chat/[id]', params: { id: done } });
     const { newChat, ask: send } = useChat.getState();
     const id = picked === 'auto' ? newChat(user.uid, detectSubject(q)) : newChat(user.uid, picked, course || null);
     void send(id, q);

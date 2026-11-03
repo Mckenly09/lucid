@@ -5,6 +5,11 @@ import { Chat, Model, SamplerBuilder, type SamplerConfig, SamplerPresets } from 
 const CONTEXT_SIZE = 2048;
 /** Caps a runaway answer; also bounds how long the phone works on one question. */
 const MAX_TOKENS = 512;
+/**
+ * Left to itself the runtime uses every core it finds; on 8-core phones that starves the UI and answers feel laggy.
+ * shortcut: fixed 4, not per device; upgrade to cores − 2 if the runtime ever exposes the core count.
+ */
+const THREADS = 4;
 /** Low temperature: students want steady, factual answers. */
 const TEMPERATURE = 0.3;
 
@@ -54,7 +59,7 @@ export function load(path: string): Promise<void> {
   unload();
   const promise = (async () => {
     const model = await Model.load({ modelPath: path });
-    const chat = new Chat({ model, contextSize: CONTEXT_SIZE, sampler: answerSampler(TEMPERATURE) });
+    const chat = new Chat({ model, contextSize: CONTEXT_SIZE, sampler: answerSampler(TEMPERATURE), threadCount: THREADS });
     loaded = { path, model, chat };
   })().finally(() => {
     pending = null;

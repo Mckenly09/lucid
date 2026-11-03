@@ -40,20 +40,7 @@ export default function SignIn() {
   };
 
   return (
-    <Screen
-      scroll
-      padded={false}
-      footer={
-        <View className="items-center gap-2 px-4 pb-6 pt-3">
-          <View className="flex-row flex-wrap items-center justify-center gap-1">
-            <Text tone="muted">New to Lucid?</Text>
-            <TextLink label="Create an account" onPress={() => router.push('/register')} />
-          </View>
-          <Text variant="caption" tone="muted" className="text-center font-sans">
-            You need internet to log in once. After that, Lucid works offline.
-          </Text>
-        </View>
-      }>
+    <Screen scroll padded={false}>
       <Header title="Step 1 of 2" subtle />
       <View className="gap-6 px-4 pt-4">
         <RiseIn className="gap-3">
@@ -90,7 +77,12 @@ export default function SignIn() {
                 label="Forgot password?"
                 variant="small"
                 tone="muted"
-                onPress={() => router.push({ pathname: '/reset-password', params: { email: email.trim() } })}
+                onPress={() =>
+                  router.push({
+                    pathname: '/reset-password',
+                    params: { email: email.trim() },
+                  })
+                }
               />
             }
           />
@@ -110,7 +102,10 @@ export default function SignIn() {
         </RiseIn>
 
         <RiseIn delay={STAGGER * 2} className="gap-3">
-          <View className="flex-row items-center gap-3" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View
+            className="flex-row items-center gap-3"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants">
             <View className="h-px flex-1 bg-ink/10" />
             <Text variant="caption" tone="muted" className="font-sans">
               or
@@ -126,7 +121,12 @@ export default function SignIn() {
             onPress={() => void run('google', signInWithGoogle)}
           />
           {/* Not in the design, but students with no internet need it (auth.md §5 offline profile). */}
-          <Button label="Continue without an account" variant="ghost" disabled={busy !== null} onPress={() => setOfflineOpen(true)} />
+          <Button
+            label="Continue without an account"
+            variant="ghost"
+            disabled={busy !== null}
+            onPress={() => setOfflineOpen(true)}
+          />
           <Text variant="caption" tone="muted" className="text-center font-sans">
             By continuing you agree to the{' '}
             <Text
@@ -140,6 +140,16 @@ export default function SignIn() {
             .
           </Text>
         </RiseIn>
+      </View>
+
+      <View className="items-center gap-2 px-4 mt-auto pt-6">
+        <View className="flex-row flex-wrap items-center justify-center gap-1">
+          <Text tone="muted">New to Lucid?</Text>
+          <TextLink label="Create an account" onPress={() => router.push('/register')} />
+        </View>
+        <Text variant="caption" tone="muted" className="text-center font-sans">
+          You need internet to log in once. After that, Lucid works offline.
+        </Text>
       </View>
 
       <Sheet visible={offlineOpen} onClose={() => setOfflineOpen(false)} title="Use Lucid without an account">

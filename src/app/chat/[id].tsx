@@ -3,6 +3,8 @@ import { Paths } from 'expo-file-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, FlatList, Linking, Platform, View } from 'react-native';
+import { KeyboardChatScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/badge';
 import { Banner } from '@/components/banner';
@@ -56,6 +58,7 @@ export default function Chat() {
   const error = useChat((s) => (s.error?.chatId === id ? s.error.kind : null));
   const { ask, explain, retry, stop, setSubject } = useChat.getState();
   const list = useRef<FlatList>(null);
+  const { bottom } = useSafeAreaInsets();
   const installedId = useModels((s) => s.installedId);
   // Read once per screen: the model needs free space to run well, and a full phone slows everything down.
   const [freeBytes] = useState(() => Paths.availableDiskSpace);
@@ -162,6 +165,9 @@ export default function Chat() {
         )}
         contentContainerClassName="gap-4 p-4"
         keyboardShouldPersistTaps="handled"
+        // Lifts only the messages with the keyboard (the input box sticks to it in Screen); the header stays put.
+        // offset: the bottom inset the keyboard covers anyway, like Screen's footer offset.
+        renderScrollComponent={(props) => <KeyboardChatScrollView {...props} offset={bottom} />}
         // Follow the answer as it streams in.
         onContentSizeChange={() => list.current?.scrollToEnd({ animated: false })}
         ListFooterComponent={

@@ -93,6 +93,7 @@ function AppStack() {
           <Stack.Screen name="cards/review" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="settings/index" />
           <Stack.Screen name="settings/model" />
+          <Stack.Screen name="settings/voice" />
           <Stack.Screen name="settings/electives" />
           <Stack.Screen name="packs/[id]" />
           <Stack.Screen name="packs/note" />

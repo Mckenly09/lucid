@@ -19,12 +19,15 @@ import { useAuth } from '@/features/auth/useAuth';
 import { exportBackup, importBackup, pickBackup } from '@/features/backup/backup';
 import type { BackupData } from '@/features/backup/services/backup';
 import { cancelReminder, REMINDER_HOUR, scheduleReminder } from '@/features/flashcards/reminder';
+import { useOnDeviceBytes } from '@/features/models/hooks/useOnDeviceBytes';
 import { useModels } from '@/features/models/store';
 import { ChoiceSheet } from '@/features/settings/components/ChoiceSheet';
 import { DeleteAccountSheet } from '@/features/settings/components/DeleteAccountSheet';
 import { SignOutSheet } from '@/features/settings/components/SignOutSheet';
 import { type AnswerLanguage, type Appearance, useSettings } from '@/features/settings/store';
 import { useColor } from '@/hooks/use-color';
+import { voicePackById } from '@/features/voice/packs';
+import { useVoicePacks } from '@/features/voice/store';
 import { modelById } from '@/llm/models';
 import { subject, SUBJECTS, type SubjectId } from '@/llm/subjects/config';
 
@@ -66,6 +69,8 @@ export default function Settings() {
   const isLocal = user?.isLocal === true;
   const label = accountLabel(user);
   const model = installedId ? modelById(installedId) : null;
+  const voiceId = useVoicePacks((s) => s.installedId);
+  const onDeviceBytes = useOnDeviceBytes();
 
   const toggleReminder = async (on: boolean) => {
     setNotice(null);
@@ -199,9 +204,15 @@ export default function Settings() {
           <Row icon="Coffee" label="Buy me a coffee" onPress={() => void Linking.openURL(COFFEE_URL)} />
           <Row icon="Cpu" label="AI model" value={model?.name ?? 'Not downloaded'} onPress={() => router.push('/settings/model')} />
           <Row
+            icon="Mic"
+            label="Voice"
+            value={voiceId ? voicePackById(voiceId).name : 'Not downloaded'}
+            onPress={() => router.push('/settings/voice')}
+          />
+          <Row
             icon="HardDrive"
             label="Storage"
-            value={model ? `${formatSize(model.sizeBytes / MB)} used` : ''}
+            value={onDeviceBytes ? `${formatSize(onDeviceBytes / MB)} used` : ''}
             onPress={() => router.navigate('/library')}
           />
         </Group>

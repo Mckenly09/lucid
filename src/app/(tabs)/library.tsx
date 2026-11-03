@@ -22,11 +22,7 @@ import { type CatalogPack, gradesLabel } from '@/features/knowledge/services/cat
 import { usePacks } from '@/features/knowledge/store';
 import { useUserPacks } from '@/features/knowledge/useUserPacks';
 import { STORAGE_MARGIN_BYTES } from '@/features/models/services/files';
-import { useModels } from '@/features/models/store';
-import { modelById } from '@/llm/models';
-import { VoicePacks } from '@/features/voice/components/voice-packs';
-import { voicePackById } from '@/features/voice/packs';
-import { useVoicePacks } from '@/features/voice/store';
+import { useOnDeviceBytes } from '@/features/models/hooks/useOnDeviceBytes';
 import { subject } from '@/llm/subjects/config';
 
 const MB = 1024 ** 2;
@@ -64,10 +60,7 @@ export default function Library() {
 
   const freeBytes = Paths.availableDiskSpace;
   const freeMB = freeBytes / MB;
-  const installedId = useModels((s) => s.installedId);
-  const voiceId = useVoicePacks((s) => s.installedId);
-  // The voice pack counts with the AI model: both are on-device models.
-  const modelMB = ((installedId ? modelById(installedId).sizeBytes : 0) + (voiceId ? voicePackById(voiceId).sizeBytes : 0)) / MB;
+  const modelMB = useOnDeviceBytes() / MB;
   const packsMB = Object.values(installed).reduce((sum, p) => sum + p.sizeMB, 0);
   const totalMB = modelMB + packsMB + freeMB;
 
@@ -183,16 +176,6 @@ export default function Library() {
                   />
                 ))
               )}
-            </View>
-
-            <View className="gap-3">
-              <View className="gap-1">
-                <Text variant="label">Voice</Text>
-                <Text variant="small" tone="muted">
-                  Ask by voice in English or Filipino. Pick one; it runs on your phone.
-                </Text>
-              </View>
-              <VoicePacks />
             </View>
 
             <View className="gap-3">

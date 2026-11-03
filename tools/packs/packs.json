@@ -390,6 +390,30 @@
         "truth table",
         "annuity"
       ]
+    },
+    {
+      "id": "filipino-notes",
+      "name": "Filipino · Gramatika at Panitikan",
+      "subject": "filipino",
+      "version": 1,
+      "source": "lucid-filipino-notes",
+      "checks": [
+        "aspekto ng pandiwa",
+        "Florante at Laura",
+        "tayutay"
+      ]
+    },
+    {
+      "id": "social-notes",
+      "name": "Araling Panlipunan · Asya, Daigdig, Ekonomiks at Isyu",
+      "subject": "social",
+      "version": 1,
+      "source": "lucid-social-notes",
+      "checks": [
+        "implasyon",
+        "Unang Digmaang Pandaigdig",
+        "karapatang pantao"
+      ]
     }
   ]
 }

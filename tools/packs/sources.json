@@ -122,6 +122,38 @@
       "evalOnly": false
     },
     {
+      "id": "lucid-filipino-notes",
+      "title": "Lucid Filipino Notes",
+      "authors": "the Lucid contributors",
+      "publisher": "Lucid",
+      "type": "markdown",
+      "repo": "",
+      "commit": "",
+      "collection": "",
+      "dir": "content/filipino",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "bookUrl": "https://github.com/Mckenly09/lucid-packs",
+      "pagesUrl": "",
+      "evalOnly": false
+    },
+    {
+      "id": "lucid-social-notes",
+      "title": "Lucid Araling Panlipunan Notes",
+      "authors": "the Lucid contributors",
+      "publisher": "Lucid",
+      "type": "markdown",
+      "repo": "",
+      "commit": "",
+      "collection": "",
+      "dir": "content/social",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "bookUrl": "https://github.com/Mckenly09/lucid-packs",
+      "pagesUrl": "",
+      "evalOnly": false
+    },
+    {
       "id": "gov-earth-science",
       "title": "Earth science pages",
       "authors": "the U.S. Geological Survey (USGS), NOAA's National Weather Service (JetStream), NASA, DOST-PHIVOLCS and DOST-PAGASA",

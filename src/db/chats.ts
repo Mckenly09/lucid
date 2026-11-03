@@ -75,6 +75,23 @@ export function listChats(uid: string, search = '', limit = 200): ChatSummary[] 
   );
 }
 
+/**
+ * The newest answered chat that started with this question (case and outer spaces ignored), so asking it again reopens it.
+ * Compares the full first message, not the title: titles stop at PREVIEW_CHARS, and long word problems often differ only at the end.
+ */
+export function findAnsweredChat(uid: string, question: string): string | null {
+  return (
+    getDb().getFirstSync<{ id: string }>(
+      `SELECT c.id FROM chats c
+       JOIN messages m ON m.id = (SELECT MIN(id) FROM messages WHERE chat_id = c.id)
+       WHERE c.uid = ? AND c.preview != '' AND trim(m.content) = ? COLLATE NOCASE
+       ORDER BY c.updated_at DESC LIMIT 1`,
+      uid,
+      question.trim(),
+    )?.id ?? null
+  );
+}
+
 export function getChat(uid: string, id: string): StoredChat | null {
   const db = getDb();
   const chat = db.getFirstSync<{ id: string; subject: SubjectId; course: string | null }>(
