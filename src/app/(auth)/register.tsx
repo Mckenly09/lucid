@@ -46,15 +46,7 @@ export default function Register() {
   };
 
   return (
-    <Screen
-      scroll
-      padded={false}
-      footer={
-        <View className="flex-row flex-wrap items-center justify-center gap-1 px-4 pb-6 pt-3">
-          <Text tone="muted">Already have an account?</Text>
-          <TextLink label="Log in" onPress={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))} />
-        </View>
-      }>
+    <Screen scroll padded={false}>
       <Header title="Create your account" />
       <View className="gap-4 px-4 pt-2">
         <TextField
@@ -108,16 +100,27 @@ export default function Register() {
             checked={ofAge}
             onChange={setOfAge}
             accessibilityLabel="I'm 18 or older, or my parent or guardian agrees to me using Lucid.">
-            I&apos;m 18 or older, <Text variant="small" className="font-semibold">or my parent/guardian agrees</Text> to me
-            using Lucid.
+            I&apos;m 18 or older,{' '}
+            <Text variant="small" className="font-semibold">
+              or my parent/guardian agrees
+            </Text>{' '}
+            to me using Lucid.
           </Checkbox>
           <Checkbox checked={agreed} onChange={setAgreed} accessibilityLabel="I agree to the Terms and Privacy Policy.">
             I agree to the{' '}
-            <Text variant="small" accessibilityRole="link" onPress={() => router.push('/settings/terms')} className="font-semibold underline">
+            <Text
+              variant="small"
+              accessibilityRole="link"
+              onPress={() => router.push('/settings/terms')}
+              className="font-semibold underline">
               Terms
             </Text>{' '}
             and{' '}
-            <Text variant="small" accessibilityRole="link" onPress={() => router.push('/settings/privacy')} className="font-semibold underline">
+            <Text
+              variant="small"
+              accessibilityRole="link"
+              onPress={() => router.push('/settings/privacy')}
+              className="font-semibold underline">
               Privacy Policy
             </Text>
             .
@@ -126,6 +129,10 @@ export default function Register() {
 
         {error && <Banner status={AUTH_ERRORS[error].status} message={AUTH_ERRORS[error].message} />}
         <Button label="Create account" size="lg" loading={busy} disabled={!ready} onPress={() => void create()} />
+      </View>
+      <View className="flex-row flex-wrap items-center justify-center gap-1 px-4 mt-auto pt-6">
+        <Text tone="muted">Already have an account?</Text>
+        <TextLink label="Log in" onPress={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))} />
       </View>
     </Screen>
   );

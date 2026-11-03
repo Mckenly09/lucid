@@ -11,6 +11,7 @@ jest.mock('react-native-keyboard-controller', () => {
     KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) => (
       <View testID="keyboard-aware-scroll">{children}</View>
     ),
+    KeyboardStickyView: ({ children }: { children: React.ReactNode }) => <View testID="sticky">{children}</View>,
   };
 });
 jest.mock('react-native-safe-area-context', () => {
@@ -27,12 +28,22 @@ it('a scrolling form with no footer scrolls the focused field into view instead 
   expect(screen.getByTestId('keyboard-aware-scroll')).toHaveTextContent('Form');
 });
 
-it('a screen with a footer keeps the plain scroll view, so the footer rides up with the keyboard', async () => {
+it('a scrolling screen with a footer keeps still; only the footer sticks to the keyboard', async () => {
   const screen = await render(
     <Screen scroll footer={<Text>Composer</Text>}>
+      <Text>Ask</Text>
+    </Screen>,
+  );
+  expect(screen.getByTestId('keyboard-aware-scroll')).toHaveTextContent('Ask');
+  expect(screen.getByTestId('sticky')).toHaveTextContent('Composer');
+});
+
+it('a non-scrolling screen with a footer (chat) also sticks only the footer to the keyboard', async () => {
+  const screen = await render(
+    <Screen footer={<Text>Composer</Text>}>
       <Text>Chat</Text>
     </Screen>,
   );
-  expect(screen.queryByTestId('keyboard-aware-scroll')).toBeNull();
+  expect(screen.getByTestId('sticky')).toHaveTextContent('Composer');
   expect(screen.getByText('Chat')).toBeTruthy();
 });

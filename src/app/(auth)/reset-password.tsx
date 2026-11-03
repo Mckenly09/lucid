@@ -35,19 +35,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <Screen
-      scroll
-      padded={false}
-      footer={
-        <View className="px-4 pb-6 pt-3">
-          <Button
-            label="Back to log in"
-            variant="secondary"
-            size="lg"
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))}
-          />
-        </View>
-      }>
+    <Screen scroll padded={false}>
       <Header />
       <View className="gap-4 px-4 pt-2">
         <View className="h-14 w-14 items-center justify-center rounded-md bg-ink/10">
@@ -57,7 +45,9 @@ export default function ResetPassword() {
           <Text variant="h1" accessibilityRole="header">
             Reset your password
           </Text>
-          <Text tone="muted">Enter the email you used for Lucid. We&apos;ll send you a link to make a new password.</Text>
+          <Text tone="muted">
+            Enter the email you used for Lucid. We&apos;ll send you a link to make a new password.
+          </Text>
         </View>
         <TextField
           label="Email"
@@ -83,6 +73,14 @@ export default function ResetPassword() {
           )}
           {error && <Banner status={AUTH_ERRORS[error].status} message={AUTH_ERRORS[error].message} />}
         </View>
+      </View>
+      <View className="px-4 mt-auto pt-6">
+        <Button
+          label="Back to log in"
+          variant="secondary"
+          size="lg"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))}
+        />
       </View>
     </Screen>
   );
