@@ -22,7 +22,6 @@ import { saveQuizResult } from '@/db/quiz';
 import { useAuth } from '@/features/auth/useAuth';
 import { useChat } from '@/features/chat/store';
 import { type CardDraft, SaveCardSheet } from '@/features/flashcards/components/SaveCardSheet';
-import { countStart } from '@/features/plus/usePlus';
 import { QuizQuestion } from '@/features/quiz/components/QuizQuestion';
 import { makeQuiz, type QuizError } from '@/features/quiz/generate';
 import type { QuizQuestion as Question } from '@/features/quiz/services/parse';
@@ -53,7 +52,6 @@ export default function Quiz() {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<QuizState>({ status: 'loading' });
   const [written, setWritten] = useState(0);
-  const uid = user?.uid;
 
   useEffect(() => {
     if (!canQuiz(answer)) return;
@@ -62,15 +60,13 @@ export default function Quiz() {
     void run.done.then((r) => {
       if (!live) return;
       setState('questions' in r ? { status: 'ready', questions: r.questions } : { status: 'error', error: r.error });
-      // Only a quiz that was actually made counts toward the free daily limit.
-      if ('questions' in r && uid) countStart(uid);
     });
     // Closing the quiz stops the model (AGENTS.md LLM rule 3).
     return () => {
       live = false;
       run.stop();
     };
-  }, [answer, attempt, uid]);
+  }, [answer, attempt]);
 
   const retry = () => {
     setState({ status: 'loading' });

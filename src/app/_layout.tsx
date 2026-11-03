@@ -15,7 +15,6 @@ import { ToastHost } from '@/components/toast';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { useAuth } from '@/features/auth/useAuth';
 import { useOnboarding } from '@/features/onboarding/store';
-import { usePlusSync } from '@/features/plus/usePlus';
 import { useSettings } from '@/features/settings/store';
 
 SplashScreen.preventAutoHideAsync();
@@ -38,7 +37,6 @@ function AppStack() {
   const onboarded = useOnboarding((s) => s.done);
   const welcomed = useOnboarding((s) => s.welcomed);
   const markWelcomed = useOnboarding((s) => s.markWelcomed);
-  usePlusSync();
   // Settings → Appearance; NativeWind and the navigation theme both follow the app's color scheme.
   const appearance = useSettings((s) => s.appearance);
   useEffect(() => Appearance.setColorScheme(appearance === 'system' ? 'unspecified' : appearance), [appearance]);
@@ -96,7 +94,6 @@ function AppStack() {
           <Stack.Screen name="settings/index" />
           <Stack.Screen name="settings/model" />
           <Stack.Screen name="settings/electives" />
-          <Stack.Screen name="plus" options={{ presentation: 'modal' }} />
           <Stack.Screen name="packs/[id]" />
           <Stack.Screen name="packs/note" />
           <Stack.Screen name="tools/calculator" />

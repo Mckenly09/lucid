@@ -35,8 +35,8 @@ const SECTIONS = [
     body: 'Keep your password safe. You are responsible for what happens on your account. You can delete it at any time in Settings → Delete account and data.',
   },
   {
-    title: 'Lucid Plus',
-    body: 'Lucid Plus is a monthly subscription billed by Google Play, at the price Google Play shows before you buy. It renews automatically until you cancel it in Google Play › Subscriptions, at least 24 hours before the renewal date. Cancelling stops the next payment; you keep Plus until the period ends. Refunds follow Google Play’s refund rules. If Plus ends, you go back to the free limits; nothing you made is deleted, and a model you already downloaded keeps working. We may change the price; Google Play will tell you first.',
+    title: 'Free to use',
+    body: 'Lucid is free. The "Buy me a coffee" link in Settings opens Buy Me a Coffee in your browser; a tip is optional, unlocks nothing, and is handled by Buy Me a Coffee under its own terms.',
   },
   {
     title: 'Content and licences',
@@ -48,7 +48,7 @@ const SECTIONS = [
   },
   {
     title: 'Limit of liability',
-    body: 'To the extent the law allows, we are not liable for indirect or consequential losses, such as lost grades or data, from using Lucid. Our total liability is limited to what you paid for Lucid Plus in the 12 months before the claim. Nothing here limits rights you have by law as a consumer.',
+    body: 'To the extent the law allows, we are not liable for indirect or consequential losses, such as lost grades or data, from using Lucid. Nothing here limits rights you have by law as a consumer.',
   },
   {
     title: 'Ending your use',
@@ -60,7 +60,7 @@ const SECTIONS = [
   },
   {
     title: 'Governing law and contact',
-    body: 'These terms are governed by the laws of the Republic of the Philippines. For questions, email Harry Mackenly Romion at lucidstudybuddy@gmail.com.',
+    body: 'These terms are governed by the laws of the Republic of the Philippines. For questions, email Harry Mack at lucidstudybuddy@gmail.com.',
   },
 ];
 

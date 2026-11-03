@@ -24,16 +24,12 @@ const SECTIONS = [
     body: 'Scan reads the text in your photo on this phone, then deletes every image file. Voice turns your speech into text on this phone; the recording isn’t saved or sent. Lucid asks for these permissions only when you first use them.',
   },
   {
-    title: 'Lucid Plus',
-    body: 'Google Play handles payment; we never see your card. RevenueCat checks whether your subscription is active using your account ID (a random code, not your name or email) and your purchase receipt. Your questions, answers and study data are never sent.',
-  },
-  {
     title: 'If you continue without an account',
     body: 'Lucid makes a profile on this phone with the first name you type, if any. Nothing is sent anywhere.',
   },
   {
     title: 'When Lucid uses the internet',
-    body: 'Only to sign in, to download the AI model and voice packs (from Hugging Face), to download subject packs (from GitHub) and to buy or restore Lucid Plus. Like any website, these services see your IP address. Your questions, photos and recordings are never sent.',
+    body: 'Only to sign in, to download the AI model and voice packs (from Hugging Face) and to download subject packs (from GitHub). The "Buy me a coffee" link opens your browser, outside Lucid. Like any website, these services see your IP address. Your questions, photos and recordings are never sent.',
   },
   {
     title: 'No ads, no tracking',
@@ -53,7 +49,7 @@ const SECTIONS = [
   },
   {
     title: 'Changes and questions',
-    body: 'If this policy changes, the new version comes with an app update. For questions, email Harry Mackenly Romion at lucidstudybuddy@gmail.com.',
+    body: 'If this policy changes, the new version comes with an app update. For questions, email Harry Mack at lucidstudybuddy@gmail.com.',
   },
 ];
 

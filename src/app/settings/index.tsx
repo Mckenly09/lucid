@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
-import { Switch, View } from 'react-native';
+import { Linking, Switch, View } from 'react-native';
 
 import { Banner } from '@/components/banner';
 import { Button } from '@/components/button';
@@ -20,7 +20,6 @@ import { exportBackup, importBackup, pickBackup } from '@/features/backup/backup
 import type { BackupData } from '@/features/backup/services/backup';
 import { cancelReminder, REMINDER_HOUR, scheduleReminder } from '@/features/flashcards/reminder';
 import { useModels } from '@/features/models/store';
-import { usePlus } from '@/features/plus/usePlus';
 import { ChoiceSheet } from '@/features/settings/components/ChoiceSheet';
 import { DeleteAccountSheet } from '@/features/settings/components/DeleteAccountSheet';
 import { SignOutSheet } from '@/features/settings/components/SignOutSheet';
@@ -48,17 +47,13 @@ const MB = 1024 ** 2;
 
 type Open = 'subject' | 'language' | 'appearance' | 'signOut' | 'delete' | null;
 
+// A plain link out, no price or perks: tips unlock nothing in the app.
+const COFFEE_URL = 'https://buymeacoffee.com/mckenly';
+
 export default function Settings() {
   const { user, signInWithGoogle } = useAuth();
   const settings = useSettings();
   const installedId = useModels((s) => s.installedId);
-  const plus = usePlus();
-  const endDate = plus.expiresAt && new Date(plus.expiresAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  const plusValue = !plus.isPlus
-    ? 'Free · Upgrade'
-    : endDate
-      ? `Active · ${plus.willRenew ? 'renews' : 'ends'} ${endDate}`
-      : 'Active';
   const switchOn = useColor('primary');
   const switchOff = useColor('default');
   const [open, setOpen] = useState<Open>(null);
@@ -201,15 +196,7 @@ export default function Settings() {
         </Group>
 
         <Group title="AI & storage">
-          <Row icon="Zap" label="Lucid Plus" value={plusValue} onPress={() => router.push('/plus')} />
-          {plus.status === 'lapsed' && (
-            <Banner
-              status="warning"
-              message="Connect once to keep Lucid Plus active."
-              icon={<Icon name="WifiOff" size={22} tone="warning" />}
-              className="mt-3"
-            />
-          )}
+          <Row icon="Coffee" label="Buy me a coffee" onPress={() => void Linking.openURL(COFFEE_URL)} />
           <Row icon="Cpu" label="AI model" value={model?.name ?? 'Not downloaded'} onPress={() => router.push('/settings/model')} />
           <Row
             icon="HardDrive"
