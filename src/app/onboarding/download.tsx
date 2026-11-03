@@ -15,7 +15,6 @@ import { Text } from '@/components/text';
 import { hasRoom } from '@/features/models/services/files';
 import { useModels } from '@/features/models/store';
 import { useOnboarding } from '@/features/onboarding/store';
-import { usePlus } from '@/features/plus/usePlus';
 import { type Model, MODELS, modelById, recommendedModel } from '@/llm/models';
 
 const GB = 1024 ** 3;
@@ -23,14 +22,12 @@ const MB = 1024 ** 2;
 
 export default function Download() {
   const finish = useOnboarding((s) => s.finish);
-  const { isPlus } = usePlus();
   const { activeId, status, progress, start, pause, resume } = useModels();
   const network = useNetworkState();
   const ramGB = (Device.totalMemory ?? 0) / GB;
   const freeBytes = Paths.availableDiskSpace;
   const fits = (m: Model) => ramGB === 0 || ramGB >= m.minRamGB;
-  // Onboarding installs the best free model; the paid one is offered later in Settings -> AI model.
-  const options = MODELS.filter((m) => !m.plus || isPlus);
+  const options = MODELS;
   const recommended = recommendedModel(ramGB, options);
 
   const [picked, setPicked] = useState(

@@ -13,7 +13,6 @@ import { Text } from '@/components/text';
 import { AccountButton } from '@/features/auth/components/AccountButton';
 import { useAuth } from '@/features/auth/useAuth';
 import { useChat } from '@/features/chat/store';
-import { usePlus } from '@/features/plus/usePlus';
 import { useSettings } from '@/features/settings/store';
 import { SUGGESTIONS } from '@/features/demo-data';
 import { VoiceSheet } from '@/features/voice/components/voice-sheet';
@@ -52,8 +51,6 @@ export default function Ask() {
   const { user } = useAuth();
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const [listening, setListening] = useState(false);
-  // Voice is a Lucid Plus feature; free students get the paywall instead (subscription.md §6).
-  const { isPlus } = usePlus();
 
   if (params.at !== lastAt) {
     setLastAt(params.at);
@@ -76,7 +73,7 @@ export default function Ask() {
 
   return (
     <Screen scroll edges={['top']} footer={
-        <Composer onSend={ask} inputRef={input} onCamera={() => router.push('/scan')} onMic={() => (isPlus ? setListening(true) : router.push('/plus'))} />
+        <Composer onSend={ask} inputRef={input} onCamera={() => router.push('/scan')} onMic={() => setListening(true)} />
       }>
       <View className="h-11 flex-row items-center gap-2">
         <Logo size="sm" />

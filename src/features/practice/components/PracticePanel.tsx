@@ -9,8 +9,6 @@ import { SubjectPicker } from '@/components/subject-picker';
 import { Text } from '@/components/text';
 import { packTopics } from '@/features/knowledge/pack-files';
 import { usePacks } from '@/features/knowledge/store';
-import { LimitSheet } from '@/features/plus/LimitSheet';
-import { useDailyLimit } from '@/features/plus/usePlus';
 import { subject, SUBJECTS, type SubjectId } from '@/llm/subjects/config';
 
 import { useTopicStats } from '../hooks/useTopicStats';
@@ -29,7 +27,6 @@ export function PracticePanel({ header }: { header: ReactElement }) {
   const [chosenGrade, setGrade] = useState<number | null>(null);
   const grade = chosenGrade != null && grades.includes(chosenGrade) ? chosenGrade : grades[0];
   const shown = topics.filter((t) => t.subject === subj && t.grade === grade);
-  const limit = useDailyLimit();
 
   const stats = useTopicStats(subj, grade);
 
@@ -59,52 +56,47 @@ export function PracticePanel({ header }: { header: ReactElement }) {
   }
 
   return (
-    <>
-      <FlatList
-        data={shown}
-        keyExtractor={(t) => `${t.grade}-${t.code}`}
-        contentContainerClassName="px-4 pb-6"
-        renderItem={({ item }) => (
-          <TopicRow
-            name={item.name}
-            stats={stats[item.code]}
-            onPress={() =>
-              limit.run(() => {
-                usePractice.getState().start(item);
-                router.push('/practice/session');
-              })
-            }
-          />
-        )}
-        ListHeaderComponent={
-          <View>
-            {header}
-            <Text tone="muted" className="mt-4">
-              Pick a topic. Lucid makes questions from your subject packs.
-            </Text>
-            <View className="mt-4 gap-3">
+    <FlatList
+      data={shown}
+      keyExtractor={(t) => `${t.grade}-${t.code}`}
+      contentContainerClassName="px-4 pb-6"
+      renderItem={({ item }) => (
+        <TopicRow
+          name={item.name}
+          stats={stats[item.code]}
+          onPress={() => {
+            usePractice.getState().start(item);
+            router.push('/practice/session');
+          }}
+        />
+      )}
+      ListHeaderComponent={
+        <View>
+          {header}
+          <Text tone="muted" className="mt-4">
+            Pick a topic. Lucid makes questions from your subject packs.
+          </Text>
+          <View className="mt-4 gap-3">
+            <SubjectPicker
+              value={subj ?? ''}
+              onChange={(id) => setSubject(id as SubjectId)}
+              options={subjects.map((s) => ({ id: s.id, label: s.short }))}
+            />
+            {grades.length > 0 && (
               <SubjectPicker
-                value={subj ?? ''}
-                onChange={(id) => setSubject(id as SubjectId)}
-                options={subjects.map((s) => ({ id: s.id, label: s.short }))}
+                value={String(grade)}
+                onChange={(g) => setGrade(Number(g))}
+                options={grades.map((g) => ({ id: String(g), label: `G${g}` }))}
               />
-              {grades.length > 0 && (
-                <SubjectPicker
-                  value={String(grade)}
-                  onChange={(g) => setGrade(Number(g))}
-                  options={grades.map((g) => ({ id: String(g), label: `G${g}` }))}
-                />
-              )}
-            </View>
-            {subj && grade != null && (
-              <Text variant="label" className="mb-1 mt-6">
-                Grade {grade} {subject(subj).short} topics
-              </Text>
             )}
           </View>
-        }
-      />
-      <LimitSheet visible={limit.blocked} onClose={limit.dismiss} />
-    </>
+          {subj && grade != null && (
+            <Text variant="label" className="mb-1 mt-6">
+              Grade {grade} {subject(subj).short} topics
+            </Text>
+          )}
+        </View>
+      }
+    />
   );
 }

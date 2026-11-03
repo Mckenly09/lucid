@@ -15,8 +15,6 @@ import { topicStats } from '@/db/practice';
 import { useAuth } from '@/features/auth/useAuth';
 import { type CardDraft, SaveCardSheet } from '@/features/flashcards/components/SaveCardSheet';
 import { ScoreDots } from '@/features/practice/components/ScoreDots';
-import { LimitSheet } from '@/features/plus/LimitSheet';
-import { useDailyLimit } from '@/features/plus/usePlus';
 import { usePractice } from '@/features/practice/store';
 
 /** "Up from 6 last time. Nice!" (v2-06); `previous` is the session before this one. */
@@ -30,7 +28,6 @@ function change(score: number, previous: number | undefined) {
 /** Practice results (design v2-06): score, change, a dot per question, the missed ones to save as cards. */
 export default function PracticeResults() {
   const { user } = useAuth();
-  const limit = useDailyLimit();
   const [{ topic, result }] = useState(() => usePractice.getState());
   const [previous] = useState(() => {
     if (!user || !topic) return undefined;
@@ -96,7 +93,7 @@ export default function PracticeResults() {
               variant="secondary"
               size="lg"
               className="flex-1"
-              onPress={() => limit.run(() => router.replace('/practice/session'))}
+              onPress={() => router.replace('/practice/session')}
             />
             <Button
               label="Other topics"
@@ -161,7 +158,6 @@ export default function PracticeResults() {
         Questions made from: {[...new Set(topic.packs.map((p) => p.attribution))].join(' · ')}
       </Text>
 
-      <LimitSheet visible={limit.blocked} onClose={limit.dismiss} />
       <SaveCardSheet
         draft={draft?.card ?? null}
         onClose={() => setDraft(null)}

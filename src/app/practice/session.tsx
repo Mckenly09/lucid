@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -11,7 +11,6 @@ import { Text } from '@/components/text';
 import { cachedQuestions, cacheQuestions, savePracticeSession } from '@/db/practice';
 import { useAuth } from '@/features/auth/useAuth';
 import { topicChunks } from '@/features/knowledge/pack-files';
-import { countStart } from '@/features/plus/usePlus';
 import { type Chunk, runPractice, SESSION_SIZE } from '@/features/practice/generate';
 import { usePractice } from '@/features/practice/store';
 import { packKey, type PracticeTopic } from '@/features/practice/topics';
@@ -53,9 +52,7 @@ export default function PracticeSession() {
   const [answers, setAnswers] = useState<number[]>([]);
   const [attempt, setAttempt] = useState(0);
   const spinner = useColor('ink');
-  const uid = user?.uid;
   // Once per session, also across "Try again" after a partial failure.
-  const counted = useRef(false);
 
   useEffect(() => {
     if (!topic) return;
@@ -73,11 +70,6 @@ export default function PracticeSession() {
       onQuestion: (q) => {
         if (!live) return;
         setQuestions((qs) => [...qs, q]);
-        // The first question means the session works: only then does it count toward the free daily limit.
-        if (!counted.current && uid) {
-          counted.current = true;
-          countStart(uid);
-        }
       },
       onFresh: (qs) => {
         try {
@@ -94,7 +86,7 @@ export default function PracticeSession() {
       live = false;
       run.stop();
     };
-  }, [topic, attempt, uid]);
+  }, [topic, attempt]);
 
   if (!topic) {
     return (
