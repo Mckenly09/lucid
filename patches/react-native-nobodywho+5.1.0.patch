@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-nobodywho/android/build.gradle b/node_modules/react-native-nobodywho/android/build.gradle
+index b57f052..153152d 100644
+--- a/node_modules/react-native-nobodywho/android/build.gradle
++++ b/node_modules/react-native-nobodywho/android/build.gradle
+@@ -154,7 +154,6 @@ android {
+     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+-    consumerProguardFiles 'proguard-rules.pro'
+ 
+     buildFeatures {
+       prefab true
