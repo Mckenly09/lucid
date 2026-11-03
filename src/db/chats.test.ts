@@ -1,5 +1,5 @@
 import { listDueCards, saveCard } from './cards';
-import { deleteChat, getChat, listChats, saveMessage, setChatSubject } from './chats';
+import { deleteChat, findAnsweredChat, getChat, listChats, saveMessage, setChatSubject } from './chats';
 import { getDb } from './client';
 import { testDb } from './test-db';
 
@@ -34,6 +34,24 @@ it('titles the chat with the question and previews the first answer only', () =>
     title: 'Why do plants need sunlight?',
     preview: 'For photosynthesis. They make food.',
   });
+});
+
+it("finds an answered chat by its question, never an unanswered one or another student's", () => {
+  saveMessage('u1', chat, 'user', 'Why do plants need sunlight?');
+  expect(findAnsweredChat('u1', 'Why do plants need sunlight?')).toBeNull();
+  saveMessage('u1', chat, 'assistant', 'For photosynthesis.');
+  expect(findAnsweredChat('u1', 'Why do plants need sunlight?')).toBe('c1');
+  expect(findAnsweredChat('u1', '  why do plants need SUNLIGHT? ')).toBe('c1');
+  expect(findAnsweredChat('u2', 'Why do plants need sunlight?')).toBeNull();
+  expect(findAnsweredChat('u1', 'Something else')).toBeNull();
+});
+
+it('tells apart long questions that only differ after the title is cut off', () => {
+  const start = 'A train leaves the station at 60 km/h and another train leaves the same station two hours later at 90 km/h. ';
+  saveMessage('u1', chat, 'user', `${start}How far from the station after 3 hours?`);
+  saveMessage('u1', chat, 'assistant', 'Answer for 3 hours.');
+  expect(findAnsweredChat('u1', `${start}How far from the station after 3 hours?`)).toBe('c1');
+  expect(findAnsweredChat('u1', `${start}How far from the station after 5 hours?`)).toBeNull();
 });
 
 it("keeps each student's chats apart", () => {
