@@ -2,143 +2,79 @@
 
 **Study clearly. Learn deeply.**
 
-Lucid is an offline-first student productivity app built with React Native, Expo, and TypeScript. It brings essential study tools into one place, with a focus on simplicity, privacy, and on-device AI.
+Lucid is an offline AI study app for senior high students. Ask a question and the answer is written **on your phone** — no account needed to study, no data plan needed after the one-time model download, and it works with airplane mode on.
 
-> **Development status:** Early development. Features and architecture may change as the project evolves.
+Android only. There is no iOS build.
+
+## Download
+
+**[⬇ Download the latest Lucid APK](https://github.com/Mckenly09/lucid/releases/latest)**
+
+Current beta: `Lucid-v1.0.0-beta.1.apk` — about **61 MB**. The AI model is not in the APK; the app downloads it on first run.
+
+All releases: <https://github.com/Mckenly09/lucid/releases>
+
+## How to install
+
+1. Open the download link **on your Android phone** (not on a computer).
+2. Tap the APK. If your browser asks, choose **Download anyway** — Android warns about files from outside the Play Store.
+3. Open the downloaded file. Android will say the app can't be installed from this source — tap **Settings**, turn on **Allow from this source** for your browser or Files app, then go back and tap **Install**.
+4. Play Protect may say the app is from an unknown developer. Tap **More details → Install anyway**. This is expected: the beta is not signed by Google Play.
+5. Open **Lucid** and let it download the AI model (see below).
+
+To update later, download the newer APK and install it over the old one. The first beta is signed with a debug key, so for now you may need to uninstall the old version first — your chats and cards will be lost. Use **Settings → Export my data** before you do.
+
+## What device you need
+
+| | Minimum | Recommended |
+|---|---|---|
+| Android | 7.0 or newer | Android 10 or newer |
+| RAM | 2 GB | 4 GB |
+| Storage free | 2 GB | 3 GB |
+| Processor | 64-bit ARM phone (arm64) | — |
+
+Notes:
+
+- Intel/x86 phones and most emulators are **not supported**; the app is built for `arm64-v8a` only.
+- On a 2 GB phone Lucid installs **Lucid Lite** (~490 MB, fast, answers are shorter).
+- On a 4 GB phone Lucid installs **Lucid** (~1.1 GB, better answers). You can switch models later in **Settings → AI model**.
+- The model is downloaded over the internet once. Do it on Wi-Fi if you can — the app warns you on mobile data — then Lucid works fully offline.
+
+## First run
+
+1. Pick the model Lucid recommends for your phone and start the download. It can be paused and resumed.
+2. Optionally open **Library** and download subject packs (Math, Science, English, Filipino, Araling Panlipunan, and more) — small, and only what you need.
+3. Ask a question, or continue with an offline profile to keep everything on this phone.
+
+Everything after that works offline: chat, flashcards, quizzes, practice, the calculator and the periodic table.
 
 ## Features
 
-### Study tools
-- **Flashcards** — Create and review study cards.
-- **Quizzes** — Practice with questions and review answers.
-- **Calculator** — Solve everyday mathematical problems.
-- **Periodic table** — Explore chemical elements and their properties.
+- **Ask** — a question in text, a photo of a page (**Scan**), or your voice. Answers are generated on the device, with a **Stop** button.
+- **Quiz me** — turns an answer into a short quiz.
+- **Flashcards** — save answers as cards and review them with a daily reminder.
+- **Practice** — topic quizzes made from subject packs, with scores per topic.
+- **Calculator** and **Periodic table** — offline tools.
+- **History and Library** — every chat and pack stays on the phone.
 
-### On-device AI — Planned / in progress
-- Local AI chat for study assistance.
-- AI-generated summaries from study notes.
-- Automatic flashcard and quiz generation.
-- Document question answering.
-- Model selection and download management.
-- Offline inference after the selected model has been downloaded.
+## Your data
 
-Lucid is intended to run supported language models directly on the device, reducing reliance on cloud inference services.
+- Questions, answers, photos and recordings **never leave your phone**.
+- Photos taken with Scan are read on the device and deleted right after.
+- No ads, no analytics, no tracking.
+- The only network use is sign-in (optional) and downloading models and subject packs.
 
-## Technology Stack
+The privacy policy and terms are in the app: **Settings → Privacy** and **Settings → Terms**.
 
-| Technology | Purpose |
-|---|---|
-| React Native | Cross-platform mobile UI |
-| Expo | Mobile development and builds |
-| TypeScript | Type-safe application code |
-| Expo Router | File-based navigation |
-| NobodyWho | On-device language model inference |
-| GGUF models | Local language model files |
+## Please remember
 
-The exact model choices, supported device requirements, and AI features will be confirmed during implementation and testing.
+Lucid is a small AI model running on a phone. **AI can be wrong — check your textbook.** It is a study helper, not a replacement for your teacher or for doing the work yourself.
 
-## Platforms
-
-- Android
-- iOS
-
-Native AI functionality requires a compatible development or production build. Expo Go alone is not sufficient for native modules that are not included in its binary.
-
-## Getting Started
-
-### Prerequisites
-
-Install the following:
-
-- Node.js version supported by your installed Expo SDK.
-- npm.
-- Android Studio and Android SDK for local Android builds.
-- macOS with Xcode for local iOS builds, or EAS Build for cloud builds.
-
-### Installation
-
-Clone the repository:
-
-```bash
-git clone <YOUR_REPOSITORY_URL>
-cd lucid
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Start the Expo development server:
-
-```bash
-npx expo start
-```
-
-### Native Android build
-
-After configuring the Android development environment and installing compatible native dependencies:
-
-```bash
-npx expo run:android
-```
-
-### iOS build
-
-On macOS with Xcode:
-
-```bash
-npx expo run:ios
-```
-
-Alternatively, use Expo Application Services (EAS) for cloud builds.
-
-## Local AI
-
-Lucid uses NobodyWho as the planned on-device inference engine.
-
-The intended model management workflow is:
-
-1. Browse supported models.
-2. Select a model appropriate for the device.
-3. Download the model.
-4. Load the model through NobodyWho.
-5. Run inference locally.
-6. Reuse the cached model for subsequent offline sessions.
-
-Only models compatible with NobodyWho's runtime and the target device will be offered. Model availability, licensing, memory requirements, and download sizes must be verified before distribution.
-
-## Privacy Principles
-
-Lucid aims to prioritize local data processing and offline usability.
-
-- Run supported AI inference on-device.
-- Avoid sending study materials to a remote AI service by default.
-- Make model downloads and storage visible to users.
-- Clearly disclose any features that require network access.
-- Validate AI-generated content before saving or using it.
-
-These are project goals and should be verified against the final implementation.
-
-## Development Guidelines
-
-- Use TypeScript for application code.
-- Keep UI components separate from business logic and AI services.
-- Preserve modular feature boundaries.
-- Validate generated flashcards and quizzes before saving.
-- Handle model loading, download failures, and insufficient memory gracefully.
-- Test on physical Android and iOS devices before release.
-
-## Project Status
-
-Lucid is currently in early development.
-
-The initial focus is to establish the Expo application, integrate NobodyWho, verify native builds, and demonstrate local model inference. The model selector and remaining AI study workflows will be implemented and tested incrementally.
+The beta build is signed with a temporary debug key and may contain bugs. Report problems at <https://github.com/Mckenly09/lucid/issues>.
 
 ## License
 
-No license has been selected yet. All rights reserved unless a license is added to this repository.
+MIT — see [LICENSE](LICENSE). The Lucid name, icon and subject packs are not part of the source licence; packs keep the licence of the source they were built from.
 
 ---
 
